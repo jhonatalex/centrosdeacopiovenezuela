@@ -73,6 +73,12 @@ async function fsUpdate(col: string, id: string, data: object) {
   await updateDoc(doc(db!, col, id), data);
 }
 
+async function fsDelete(col: string, id: string) {
+  const { db } = getFirebase();
+  const { doc, deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(db!, col, id));
+}
+
 /* ----------------------------- Subida de imágenes ----------------------------- */
 
 /** En modo real sube a Storage; en demo devuelve el dataURL tal cual. */
@@ -178,6 +184,15 @@ export async function crearRegistroMedico(r: RegistroMedico): Promise<void> {
   await fsSet("medicos", r.id, r as unknown as object);
 }
 
+export async function eliminarRegistroMedico(id: string): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    lsSet("medicos", all.filter(m => m.id !== id));
+    return;
+  }
+  await fsDelete("medicos", id);
+}
+
 /* =============================== MEDICAMENTOS =============================== */
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
@@ -194,6 +209,15 @@ export async function crearMedicamento(m: Medicamento): Promise<void> {
     return;
   }
   await fsSet("medicamentos", m.id, m as unknown as object);
+}
+
+export async function eliminarMedicamento(id: string): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Medicamento>("medicamentos", medicamentosSeed);
+    lsSet("medicamentos", all.filter(m => m.id !== id));
+    return;
+  }
+  await fsDelete("medicamentos", id);
 }
 
 export async function ajustarCantidadMedicamento(id: string, delta: number): Promise<void> {
