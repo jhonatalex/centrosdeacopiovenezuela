@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lista de administradores (edita con los UID/correos autorizados).
+    function esAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          'tucorreo@gmail.com'
+        ];
+    }
+
+    // Centros de acopio: el público solo ve los aprobados.
+    match /centros/{id} {
+      allow read: if resource.data.estado == 'aprobado' || esAdmin();
+      // Cualquiera puede crear un centro (queda 'pendiente').
+      allow create: if request.resource.data.estado == 'pendiente';
+      // Solo un admin puede moderar.
+      allow update, delete: if esAdmin();
+    }
+
+    // Reseñas: lectura pública; crear requiere sesión y ser el autor.
+    match /reviews/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.autorUid == request.auth.uid;
+      allow update, delete: if esAdmin();
+    }
+
+    // Banco de medicamentos y registros médicos: comunitarios.
+    match /medicamentos/{id} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if esAdmin();
+    }
+    match /medicos/{id} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if esAdmin();
+    }
+
+    // Solicitudes de rescate.
+    match /rescates/{id} {
+      allow read, create: if true;
+      allow update: if true; // marcar resuelto
+      allow delete: if esAdmin();
+    }
+
+    // Balizas para reencuentro familiar (efímeras, por código compartido).
+    match /balizas/{id} {
+      allow read, create, update: if true;
+      allow delete: if esAdmin();
+    }
+  }
+}
