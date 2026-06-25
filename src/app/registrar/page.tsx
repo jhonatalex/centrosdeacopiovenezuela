@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -12,6 +12,8 @@ import {
   Loader2,
   ArrowLeft,
   Crosshair,
+  AlertTriangle,
+  LogIn,
 } from "lucide-react";
 import { crearCentro, nuevoId, subirFoto } from "@/lib/db";
 import { fileADataUrl } from "@/lib/img";
@@ -23,8 +25,10 @@ import {
   Textarea,
   ChipInput,
   SectionHeader,
+  EmptyState,
   cx,
 } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -32,6 +36,7 @@ const SUG_NECESITA = ["Agua potable", "Pañales", "Medicamentos", "Alimentos no 
 const SUG_SOBRA = ["Ropa", "Frazadas", "Útiles de aseo", "Agua", "Enlatados"];
 
 export default function RegistrarPage() {
+  const { usuario, iniciarSesion } = useAuth();
   const [fotos, setFotos] = useState<string[]>([]);
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -39,7 +44,7 @@ export default function RegistrarPage() {
   const [ciudad, setCiudad] = useState("");
   const [zona, setZona] = useState("");
   const [institucion, setInstitucion] = useState("");
-  const [contacto, setContacto] = useState("");
+  const [contactos, setContactos] = useState<string[]>([]);
   const [punto, setPunto] = useState<GeoPunto | null>(null);
   const [necesita, setNecesita] = useState<string[]>([]);
   const [sobra, setSobra] = useState<string[]>([]);
@@ -47,10 +52,32 @@ export default function RegistrarPage() {
   const [regNombre, setRegNombre] = useState("");
   const [regContacto, setRegContacto] = useState("");
 
+  const [miUbicacion, setMiUbicacion] = useState<GeoPunto | null>(null);
+
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
   const [listo, setListo] = useState(false);
   const [procesandoFoto, setProcesandoFoto] = useState(false);
+
+  // Pre-rellenar el nombre del registrador con el nombre del usuario de Google
+  useEffect(() => {
+    if (usuario && !regNombre) {
+      setRegNombre(usuario.nombre);
+    }
+  }, [usuario, regNombre]);
+
+  // Detectar ubicación actual para mostrarla en el mapa
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setMiUbicacion({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        null,
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   async function onFotos(files: FileList | null) {
     if (!files) return;
@@ -73,8 +100,10 @@ export default function RegistrarPage() {
     if (!nombre.trim()) e.nombre = "Indica el nombre del centro.";
     if (!direccion.trim()) e.direccion = "Indica la dirección o referencia.";
     if (!ciudad.trim()) e.ciudad = "Indica la ciudad.";
-    if (!contacto.trim()) e.contacto = "Indica un número de contacto.";
+    if (contactos.length === 0) e.contacto = "Indica al menos un número de contacto.";
     if (!punto) e.punto = "Selecciona la ubicación en el mapa.";
+    if (!regNombre.trim()) e.regNombre = "Indica tu nombre.";
+    if (!regContacto.trim()) e.regContacto = "Indica tu número de contacto.";
     setErrores(e);
     return Object.keys(e).length === 0;
   }
@@ -100,13 +129,15 @@ export default function RegistrarPage() {
         ciudad: ciudad.trim(),
         zona: zona.trim() || undefined,
         institucion: institucion.trim() || undefined,
-        contactoCentro: contacto.trim(),
+        contactoCentro: contactos.join(", "),
         ubicacion: punto!,
         necesita,
         sobra,
         descripcion: descripcion.trim() || undefined,
         registradorNombre: regNombre.trim() || undefined,
         registradorContacto: regContacto.trim() || undefined,
+        registradorUid: usuario?.uid,
+        registradorEmail: usuario?.email,
         estado: "pendiente",
         creadoEn: Date.now(),
       };
@@ -118,10 +149,16 @@ export default function RegistrarPage() {
   }
 
   function usarMiUbicacion() {
+    if (miUbicacion) {
+      setPunto(miUbicacion);
+      return;
+    }
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition((pos) =>
-      setPunto({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-    );
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setMiUbicacion(p);
+      setPunto(p);
+    });
   }
 
   if (listo) {
@@ -148,18 +185,35 @@ export default function RegistrarPage() {
               setCiudad("");
               setZona("");
               setInstitucion("");
-              setContacto("");
+              setContactos([]);
               setPunto(null);
               setNecesita([]);
               setSobra([]);
               setDescripcion("");
-              setRegNombre("");
+              setRegNombre(usuario?.nombre || "");
               setRegContacto("");
             }}
           >
             Registrar otro
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+        <EmptyState
+          icon={<Building2 className="size-12 text-primary" />}
+          titulo="Inicio de sesión requerido"
+          detalle="Debes iniciar sesión con tu cuenta de Google para poder registrar un nuevo centro de acopio."
+          accion={
+            <Button onClick={iniciarSesion}>
+              <LogIn className="size-5" /> Iniciar sesión con Google
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -266,24 +320,22 @@ export default function RegistrarPage() {
               placeholder="Cruz Roja, junta de vecinos…"
             />
           </Field>
-          <Field label="Teléfono(s) de contacto del centro" required error={errores.contacto}>
-            <Input
-              type="tel"
-              inputMode="tel"
-              value={contacto}
-              onChange={(e) => setContacto(e.target.value)}
-              placeholder="+58 …"
-              autoComplete="tel"
+          <Field label="Teléfono(s) de contacto del centro" required error={errores.contacto} hint="Escribe cada número y presiona Enter o el botón Añadir.">
+            <ChipInput
+              valores={contactos}
+              onChange={setContactos}
+              tono="primary"
+              placeholder="Ej. +58 412 555 1234"
             />
           </Field>
         </section>
 
         {/* Ubicación en mapa */}
         <section>
-          <Field label="Ubicación en el mapa" required hint="Toca el mapa para colocar el marcador." error={errores.punto}>
+          <Field label="Ubicación en el mapa" required hint="Toca el mapa para colocar el marcador si el centro está en otro lugar, o usa tu ubicación actual." error={errores.punto}>
             <div className="overflow-hidden rounded-2xl border border-border">
               <div className="h-64">
-                <MapView centros={[]} onPick={setPunto} puntoElegido={punto} enfocar={punto} />
+                <MapView centros={[]} onPick={setPunto} puntoElegido={punto} miUbicacion={miUbicacion} enfocar={punto || miUbicacion} />
               </div>
               <div className="flex items-center justify-between gap-2 bg-surface-2 px-3 py-2 text-xs">
                 <span className="flex items-center gap-1 text-muted">
@@ -338,13 +390,24 @@ export default function RegistrarPage() {
             Tus datos (privados)
           </h2>
           <p className="-mt-2 text-xs text-muted">Solo los ve el administrador para validar el registro.</p>
-          <Field label="Tu nombre">
+          <Field label="Tu nombre" required error={errores.regNombre}>
             <Input value={regNombre} onChange={(e) => setRegNombre(e.target.value)} />
           </Field>
-          <Field label="Tu contacto">
+          <Field label="Tu contacto (teléfono)" required error={errores.regContacto}>
             <Input value={regContacto} onChange={(e) => setRegContacto(e.target.value)} placeholder="+58 …" />
           </Field>
         </section>
+
+        {/* Aviso de moderación y validación */}
+        <div className="flex gap-3 rounded-2xl border border-warning/15 bg-accent-soft p-4 text-warning">
+          <AlertTriangle className="size-5 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="font-display text-sm font-bold text-warning">Validación de información</p>
+            <p className="text-xs leading-relaxed text-foreground/80">
+              Al enviar este registro, el centro de acopio entrará en revisión manual. Toda la información será validada antes de ser publicada de forma oficial, y se te notificará cuando sea aprobado.
+            </p>
+          </div>
+        </div>
 
         <Button full size="lg" cargando={enviando} onClick={enviar}>
           Enviar para revisión

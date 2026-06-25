@@ -26,6 +26,8 @@ export interface Centro {
   // Registrador (privado, sólo visible para admin)
   registradorNombre?: string;
   registradorContacto?: string;
+  registradorUid?: string;
+  registradorEmail?: string;
   // Moderación
   estado: EstadoModeracion;
   motivoRechazo?: string;

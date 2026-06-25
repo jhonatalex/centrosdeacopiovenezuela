@@ -80,11 +80,26 @@ function Detalle() {
     }
   }
 
+  const noAprobado = centro?.estado !== "aprobado";
+  const esAdmin = usuario?.esAdmin;
+
   if (cargando) return <Spinner label="Cargando centro…" />;
-  if (!centro)
+  if (!centro || (noAprobado && !esAdmin))
     return (
       <div className="px-4 pt-8">
-        <EmptyState titulo="Centro no encontrado" detalle="Puede que haya sido removido." accion={<Link href="/"><Button variant="secondary">Volver al mapa</Button></Link>} />
+        <EmptyState
+          titulo="Centro no disponible"
+          detalle={
+            !centro
+              ? "Puede que el centro de acopio haya sido removido."
+              : "El centro de acopio aún no ha sido aprobado por un administrador."
+          }
+          accion={
+            <Link href="/">
+              <Button variant="secondary">Volver al mapa</Button>
+            </Link>
+          }
+        />
       </div>
     );
 
@@ -142,11 +157,22 @@ function Detalle() {
           )}
         </div>
 
-        <a href={`tel:${centro.contactoCentro}`}>
-          <Button full size="lg">
-            <Phone className="size-5" /> Llamar al centro
-          </Button>
-        </a>
+        <div className="flex flex-col gap-2">
+          {centro.contactoCentro.split(",").map((tel, idx) => {
+            const t = tel.trim();
+            if (!t) return null;
+            return (
+              <a key={idx} href={`tel:${t}`} className="w-full">
+                <Button full size="lg" className="w-full">
+                  <Phone className="size-5" /> Llamar al centro {centro.contactoCentro.includes(",") ? `(${t})` : ""}
+                </Button>
+              </a>
+            );
+          })}
+        </div>
+
+        <br />
+        <br />
 
         {(centro.necesita.length > 0 || centro.sobra.length > 0) && (
           <div className="grid gap-3 sm:grid-cols-2">
