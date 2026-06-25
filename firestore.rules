@@ -6,7 +6,7 @@ service cloud.firestore {
     function esAdmin() {
       return request.auth != null &&
         request.auth.token.email in [
-          'tucorreo@gmail.com'
+          'jhonatanmejias@gmail.com'
         ];
     }
 
