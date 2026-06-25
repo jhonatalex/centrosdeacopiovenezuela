@@ -1,5 +1,8 @@
 import type { MetadataRoute } from "next";
 
+// Necesario para exportar el manifest como archivo estático (output: "export").
+export const dynamic = "force-static";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Centros de Acopio · Ayuda en Emergencias Venezuela",

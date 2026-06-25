@@ -12,6 +12,8 @@ import {
   Activity,
   MapPin,
   RefreshCw,
+  X,
+  ZoomIn,
 } from "lucide-react";
 import { listarBalizas, publicarBaliza } from "@/lib/db";
 import type { Baliza, GeoPunto } from "@/lib/types";
@@ -61,6 +63,7 @@ const grietasSeguras = [
 ];
 
 function Grietas() {
+  const [zoom, setZoom] = useState<{ src: string; alt: string } | null>(null);
   return (
     <section className="mt-6">
       <h2 className="mb-3 font-display text-lg font-bold">¿Qué grietas son peligrosas?</h2>
@@ -76,6 +79,11 @@ function Grietas() {
               </li>
             ))}
           </ul>
+          <ImagenGrieta
+            src="/grieta-peligros.png"
+            alt="Ejemplo de grieta peligrosa (estructural)"
+            onZoom={setZoom}
+          />
         </Card>
         <Card className="border-success/30 p-4">
           <p className="mb-2 flex items-center gap-2 font-semibold text-success">
@@ -88,13 +96,70 @@ function Grietas() {
               </li>
             ))}
           </ul>
+          <ImagenGrieta
+            src="/grieta-nopeligrosa.png"
+            alt="Ejemplo de grieta no peligrosa (superficial)"
+            onZoom={setZoom}
+          />
         </Card>
       </div>
       <p className="mt-2 text-xs text-muted">
         Ante la duda, evacúa y solicita evaluación de un ingeniero o de Protección Civil. No
         regreses a una estructura con grietas peligrosas.
       </p>
+
+      {zoom && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={zoom.alt}
+          onClick={() => setZoom(null)}
+          className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        >
+          <button
+            aria-label="Cerrar"
+            onClick={() => setZoom(null)}
+            className="absolute right-4 top-4 grid size-11 place-items-center rounded-full bg-white/15 text-white"
+          >
+            <X className="size-6" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={zoom.src}
+            alt={zoom.alt}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-float"
+          />
+          <p className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-white/15 px-4 py-1.5 text-center text-sm text-white">
+            {zoom.alt}
+          </p>
+        </div>
+      )}
     </section>
+  );
+}
+
+function ImagenGrieta({
+  src,
+  alt,
+  onZoom,
+}: {
+  src: string;
+  alt: string;
+  onZoom: (v: { src: string; alt: string }) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onZoom({ src, alt })}
+      className="group mt-3 block w-full overflow-hidden rounded-2xl clay-sm"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={alt} className="h-36 w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+      <span className="flex items-center justify-center gap-1 bg-surface-2 py-1.5 text-[11px] font-medium text-muted">
+        <ZoomIn className="size-3.5" /> Toca para ampliar
+      </span>
+    </button>
   );
 }
 
