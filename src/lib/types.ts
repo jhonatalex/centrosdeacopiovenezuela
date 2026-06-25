@@ -55,9 +55,26 @@ export interface RegistroMedico {
   cedula?: string; // identidad básica (opcional)
   patologia: string; // enfermedad
   tratamiento: string; // qué tratamiento usa
+  posologia?: string; // cada cuánto lo toma
+  tratamientosAdicionales?: {
+    patologia: string;
+    tratamiento: string;
+    posologia?: string;
+  }[];
+  condicionesMedicas?: {
+    patologia: string;
+    medicamentos: {
+      nombre: string;
+      posologia?: string;
+    }[];
+  }[];
   ciudad: string;
+  municipio?: string;
+  parroquia?: string;
+  direccion?: string;
   telefono: string;
   creadoEn: number;
+  creadorEmail?: string;
 }
 
 /** Banco de medicamentos para donar */
@@ -67,9 +84,13 @@ export interface Medicamento {
   presentacion?: string; // ej. "500mg comprimidos"
   cantidad: number; // contador disponible
   ciudad: string;
+  municipio?: string;
+  parroquia?: string;
+  direccion?: string;
   ubicacionTexto: string; // dónde retirarlo
   contacto: string;
   creadoEn: number;
+  creadorEmail?: string;
 }
 
 /** Solicitud de rescate */
