@@ -13,12 +13,18 @@ import {
   MessageSquarePlus,
   Loader2,
   LogIn,
+  Edit,
+  Save,
+  UserCheck,
+  X,
 } from "lucide-react";
 import {
   obtenerCentro,
   listarReviews,
   crearReview,
   nuevoId,
+  actualizarCentro,
+  crearSolicitudResponsabilidad,
 } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import type { Centro, Review } from "@/lib/types";
@@ -30,6 +36,10 @@ import {
   StarRating,
   Textarea,
   EmptyState,
+  Input,
+  Field,
+  ChipInput,
+  cx,
 } from "@/components/ui";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -45,6 +55,25 @@ function Detalle() {
   const [rating, setRating] = useState(5);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  // Estados para el editor de centro
+  const [editando, setEditando] = useState(false);
+  const [editNombre, setEditNombre] = useState("");
+  const [editDireccion, setEditDireccion] = useState("");
+  const [editCiudad, setEditCiudad] = useState("");
+  const [editZona, setEditZona] = useState("");
+  const [editContacto, setEditContacto] = useState<string[]>([]);
+  const [editNecesita, setEditNecesita] = useState<string[]>([]);
+  const [editSobra, setEditSobra] = useState<string[]>([]);
+  const [editDescripcion, setEditDescripcion] = useState("");
+  const [editInstitucion, setEditInstitucion] = useState("");
+
+  // Estados para solicitar responsabilidad
+  const [solicitandoResp, setSolicitandoResp] = useState(false);
+  const [telSolicitante, setTelSolicitante] = useState("");
+  const [enviandoSolicitud, setEnviandoSolicitud] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
+  const [errorSolicitud, setErrorSolicitud] = useState("");
 
   async function recargar() {
     const c = await obtenerCentro(id);
@@ -79,6 +108,77 @@ function Detalle() {
       setEnviando(false);
     }
   }
+
+  const iniciarEdicion = () => {
+    if (!centro) return;
+    setEditNombre(centro.nombre);
+    setEditDireccion(centro.direccion);
+    setEditCiudad(centro.ciudad);
+    setEditZona(centro.zona || "");
+    setEditContacto(centro.contactoCentro.split(",").map(x => x.trim()).filter(Boolean));
+    setEditNecesita(centro.necesita);
+    setEditSobra(centro.sobra);
+    setEditDescripcion(centro.descripcion || "");
+    setEditInstitucion(centro.institucion || "");
+    setEditando(true);
+  };
+
+  const guardarCambios = async () => {
+    if (!centro || !editNombre.trim() || !editDireccion.trim() || !editCiudad.trim() || editContacto.length === 0) return;
+    setEnviando(true);
+    try {
+      const centroActualizado: Centro = {
+        ...centro,
+        nombre: editNombre.trim(),
+        direccion: editDireccion.trim(),
+        ciudad: editCiudad.trim(),
+        zona: editZona.trim() || undefined,
+        contactoCentro: editContacto.join(", "),
+        necesita: editNecesita,
+        sobra: editSobra,
+        descripcion: editDescripcion.trim() || undefined,
+        institucion: editInstitucion.trim() || undefined,
+      };
+      await actualizarCentro(centroActualizado);
+      setEditando(false);
+      await recargar();
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const procesarSolicitud = async () => {
+    if (!usuario || !centro || !telSolicitante.trim()) {
+      setErrorSolicitud("Debes ingresar un número de contacto.");
+      return;
+    }
+    setEnviandoSolicitud(true);
+    setErrorSolicitud("");
+    try {
+      await crearSolicitudResponsabilidad({
+        id: nuevoId(),
+        centroId: centro.id,
+        centroNombre: centro.nombre,
+        solicitanteUid: usuario.uid,
+        solicitanteNombre: usuario.nombre,
+        solicitanteEmail: usuario.email,
+        solicitanteContacto: telSolicitante.trim(),
+        creadoEn: Date.now(),
+        estado: "pendiente",
+      });
+      setSolicitudEnviada(true);
+      setTelSolicitante("");
+      setTimeout(() => {
+        setSolicitandoResp(false);
+        setSolicitudEnviada(false);
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      setErrorSolicitud("Hubo un error al enviar la solicitud.");
+    } finally {
+      setEnviandoSolicitud(false);
+    }
+  };
 
   const noAprobado = centro?.estado !== "aprobado";
   const esAdmin = usuario?.esAdmin;
@@ -169,6 +269,20 @@ function Detalle() {
               </a>
             );
           })}
+
+          {/* Acciones de Propietario / Admin */}
+          {(usuario?.esAdmin || usuario?.uid === centro.registradorUid) && (
+            <Button full variant="secondary" size="lg" onClick={iniciarEdicion}>
+              <Edit className="size-4" /> Editar datos del centro
+            </Button>
+          )}
+
+          {/* Botón para reclamar responsabilidad (si no es el dueño ni admin) */}
+          {usuario && usuario.uid !== centro.registradorUid && !usuario.esAdmin && (
+            <Button full variant="outline" size="lg" onClick={() => setSolicitandoResp(true)}>
+              <UserCheck className="size-4" /> Soy responsable de este centro
+            </Button>
+          )}
         </div>
 
         <br />
@@ -272,6 +386,120 @@ function Detalle() {
           )}
         </section>
       </div>
+
+      {/* Modal de edición (para Propietario o Admin) */}
+      {editando && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <div className="relative w-full max-w-lg rounded-3xl bg-surface clay p-6 my-8 max-h-[90vh] overflow-y-auto text-left">
+            <button
+              onClick={() => setEditando(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 bg-surface-2 hover:bg-surface-3 transition-colors text-muted"
+            >
+              <X className="size-5" />
+            </button>
+            <h3 className="font-display text-lg font-bold mb-4 flex items-center gap-2">
+              <Edit className="size-5 text-primary" /> Editar Centro de Acopio
+            </h3>
+
+            <div className="space-y-4 text-sm">
+              <Field label="Nombre del centro" required>
+                <Input value={editNombre} onChange={(e) => setEditNombre(e.target.value)} />
+              </Field>
+              <Field label="Dirección o referencia" required>
+                <Input value={editDireccion} onChange={(e) => setEditDireccion(e.target.value)} />
+              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Ciudad" required>
+                  <Input value={editCiudad} onChange={(e) => setEditCiudad(e.target.value)} />
+                </Field>
+                <Field label="Zona / Parroquia">
+                  <Input value={editZona} onChange={(e) => setEditZona(e.target.value)} />
+                </Field>
+              </div>
+              <Field label="Institución responsable">
+                <Input value={editInstitucion} onChange={(e) => setEditInstitucion(e.target.value)} />
+              </Field>
+              <Field label="Teléfono(s) de contacto" required hint="Escribe cada número y presiona Enter.">
+                <ChipInput valores={editContacto} onChange={setEditContacto} tono="primary" />
+              </Field>
+              <Field label="¿Qué necesita con urgencia?">
+                <ChipInput valores={editNecesita} onChange={setEditNecesita} tono="danger" />
+              </Field>
+              <Field label="¿Qué puede compartir / donar?">
+                <ChipInput valores={editSobra} onChange={setEditSobra} tono="success" />
+              </Field>
+              <Field label="Descripción / Horarios">
+                <Textarea value={editDescripcion} onChange={(e) => setEditDescripcion(e.target.value)} />
+              </Field>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <Button variant="secondary" full onClick={() => setEditando(false)}>
+                Cancelar
+              </Button>
+              <Button full onClick={guardarCambios} cargando={enviando}>
+                <Save className="size-4" /> Guardar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para solicitar responsabilidad */}
+      {solicitandoResp && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-3xl bg-surface clay p-6 text-left">
+            <button
+              onClick={() => setSolicitandoResp(false)}
+              className="absolute right-4 top-4 rounded-full p-1.5 bg-surface-2 hover:bg-surface-3 transition-colors text-muted"
+            >
+              <X className="size-5" />
+            </button>
+            <h3 className="font-display text-lg font-bold mb-2 flex items-center gap-2">
+              <UserCheck className="size-5 text-primary" /> Asignar Responsabilidad
+            </h3>
+            
+            {solicitudEnviada ? (
+              <div className="py-6 text-center space-y-2">
+                <p className="font-bold text-success text-base">¡Solicitud enviada correctamente!</p>
+                <p className="text-xs text-muted">Un administrador validará los datos para asignarte el centro.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted mb-4 leading-relaxed">
+                  Si eres responsable directo o voluntario a cargo de este centro de acopio, solicita su asignación para poder actualizar el inventario y sus detalles cuando lo necesites.
+                </p>
+                
+                <div className="space-y-3 text-sm">
+                  <Field label="Tu Nombre">
+                    <Input value={usuario?.nombre} disabled className="opacity-70 bg-surface-2 cursor-not-allowed" />
+                  </Field>
+                  <Field label="Tu Correo">
+                    <Input value={usuario?.email} disabled className="opacity-70 bg-surface-2 cursor-not-allowed" />
+                  </Field>
+                  <Field label="Tu Teléfono de Contacto" required error={errorSolicitud}>
+                    <Input
+                      value={telSolicitante}
+                      onChange={(e) => setTelSolicitante(e.target.value)}
+                      placeholder="Ej. +58 412 555 9876"
+                      type="tel"
+                    />
+                  </Field>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <Button variant="secondary" full onClick={() => setSolicitandoResp(false)}>
+                    Cancelar
+                  </Button>
+                  <Button full onClick={procesarSolicitud} cargando={enviandoSolicitud}>
+                    Enviar Solicitud
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

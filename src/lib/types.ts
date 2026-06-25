@@ -125,3 +125,15 @@ export interface Usuario {
   foto?: string;
   esAdmin: boolean;
 }
+
+export interface SolicitudResponsabilidad {
+  id: string;
+  centroId: string;
+  centroNombre: string;
+  solicitanteUid: string;
+  solicitanteNombre: string;
+  solicitanteEmail: string;
+  solicitanteContacto: string;
+  creadoEn: number;
+  estado: "pendiente" | "aceptada" | "rechazada";
+}
