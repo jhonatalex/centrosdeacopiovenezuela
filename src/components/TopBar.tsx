@@ -14,7 +14,7 @@ export default function TopBar() {
       <div className="mx-auto flex h-14 max-w-2xl items-center justify-between gap-2 px-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="grid size-9 place-items-center rounded-[0.9rem] bg-primary text-on-primary clay-btn">
-            <HeartHandshake className="size-5" aria-hidden />
+            <img src="./og-image.png" alt="" className="size-7" />
           </span>
           <span className="font-display text-[15px] font-bold leading-tight tracking-tight">
             Centros de Acopio
@@ -50,7 +50,7 @@ export default function TopBar() {
           ) : (
             <Button size="sm" variant="secondary" onClick={iniciarSesion}>
               <LogIn className="size-4" />
-              {esDemo ? "Entrar (demo)" : "Google"}
+              Google
             </Button>
           )}
         </div>

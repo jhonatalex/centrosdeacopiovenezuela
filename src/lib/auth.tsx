@@ -45,13 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { onAuthStateChanged } = await import("firebase/auth");
       unsub = onAuthStateChanged(auth!, (u) => {
         if (u) {
-          setUsuario({
+          const userObj: Usuario = {
             uid: u.uid,
             nombre: u.displayName ?? "Usuario",
             email: u.email ?? "",
             foto: u.photoURL ?? undefined,
             esAdmin: adminEmails.includes((u.email ?? "").toLowerCase()),
-          });
+          };
+          setUsuario(userObj);
+          import("./db").then(({ guardarUsuario }) => guardarUsuario(userObj));
         } else {
           setUsuario(null);
         }
@@ -73,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       localStorage.setItem(DEMO_KEY, JSON.stringify(demo));
       setUsuario(demo);
+      import("./db").then(({ guardarUsuario }) => guardarUsuario(demo));
       return;
     }
     const { auth } = getFirebase();

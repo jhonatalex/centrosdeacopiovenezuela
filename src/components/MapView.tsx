@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
 import { Navigation, Star } from "lucide-react";
@@ -15,7 +15,7 @@ function pin(color: string, urgente: boolean) {
   return L.divIcon({
     className: "acopio-pin",
     html: `
-      <div style="position:relative;transform:translate(-50%,-100%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))">
+      <div style="position:relative;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))">
         <svg width="36" height="46" viewBox="0 0 36 46" xmlns="http://www.w3.org/2000/svg">
           <path d="M18 0C8.06 0 0 8.06 0 18c0 12.6 18 28 18 28s18-15.4 18-28C36 8.06 27.94 0 18 0z" fill="${color}"/>
           <circle cx="18" cy="18" r="7" fill="white"/>
@@ -30,7 +30,7 @@ function pin(color: string, urgente: boolean) {
 
 const userIcon = L.divIcon({
   className: "acopio-pin",
-  html: `<div style="transform:translate(-50%,-50%)"><span style="display:block;width:18px;height:18px;border-radius:50%;background:#6c7ff0;border:3px solid white;box-shadow:0 0 0 4px rgba(108,127,240,.3)"></span></div>`,
+  html: `<div><span style="display:block;width:18px;height:18px;border-radius:50%;background:#6c7ff0;border:3px solid white;box-shadow:0 0 0 4px rgba(108,127,240,.3)"></span></div>`,
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
@@ -82,18 +82,43 @@ export default function MapView({
     <MapContainer
       center={[VENEZUELA.lat, VENEZUELA.lng]}
       zoom={6}
-      scrollWheelZoom
+      scrollWheelZoom={false}
       className={className}
       style={{ height: "100%", width: "100%" }}
       ref={(m) => {
         ref.current = m;
       }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="🗺️ Mapa Estándar">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="🛰️ Satélite (Esri)">
+          <TileLayer
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="☀️ Mapa Claro (CartoDB)">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            maxZoom={20}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="🌙 Mapa Oscuro (CartoDB)">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            maxZoom={20}
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
 
       {centros.map((c) => {
         const urgente = c.necesita.length > 0;

@@ -15,6 +15,7 @@ import type {
   Medicamento,
   Rescate,
   Baliza,
+  Usuario,
 } from "./types";
 
 export const esDemo = !firebaseHabilitado;
@@ -124,6 +125,18 @@ export async function moderarCentro(
     return;
   }
   await fsUpdate("centros", id, { estado, motivoRechazo: motivoRechazo ?? "" });
+}
+
+export async function actualizarCentro(c: Centro): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Centro>("centros", centrosSeed);
+    lsSet(
+      "centros",
+      all.map((x) => (x.id === c.id ? c : x)),
+    );
+    return;
+  }
+  await fsSet("centros", c.id, c as unknown as object);
 }
 
 /* =============================== REVIEWS =============================== */
@@ -252,4 +265,21 @@ export async function publicarBaliza(b: Baliza): Promise<void> {
     return;
   }
   await fsSet("balizas", b.id, b as unknown as object);
+}
+
+/* =============================== USUARIOS =============================== */
+
+export async function guardarUsuario(u: Usuario): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Usuario>("usuarios", []);
+    const otras = all.filter((x) => x.uid !== u.uid);
+    lsSet("usuarios", [...otras, u]);
+    return;
+  }
+  await fsSet("usuarios", u.uid, u as unknown as object);
+}
+
+export async function listarUsuarios(): Promise<Usuario[]> {
+  const all = esDemo ? lsGet<Usuario>("usuarios", []) : await fsAll<Usuario>("usuarios");
+  return all.sort((a, b) => a.nombre.localeCompare(b.nombre));
 }
