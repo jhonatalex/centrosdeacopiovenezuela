@@ -35,6 +35,7 @@ import {
   Button,
   Card,
   Spinner,
+  StarRating,
   Textarea,
   EmptyState,
   Input,
