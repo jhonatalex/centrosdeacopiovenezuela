@@ -25,6 +25,7 @@ import {
   SectionHeader,
   cx,
 } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
@@ -32,6 +33,7 @@ const SUG_NECESITA = ["Agua potable", "Pañales", "Medicamentos", "Alimentos no 
 const SUG_SOBRA = ["Ropa", "Frazadas", "Útiles de aseo", "Agua", "Enlatados"];
 
 export default function RegistrarPage() {
+  const { usuario, iniciarSesion } = useAuth();
   const [fotos, setFotos] = useState<string[]>([]);
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -107,6 +109,7 @@ export default function RegistrarPage() {
         descripcion: descripcion.trim() || undefined,
         registradorNombre: regNombre.trim() || undefined,
         registradorContacto: regContacto.trim() || undefined,
+        creadorUid: usuario?.uid,
         estado: "pendiente",
         creadoEn: Date.now(),
       };
@@ -160,6 +163,19 @@ export default function RegistrarPage() {
             Registrar otro
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+        <Building2 className="size-12 text-muted" />
+        <h1 className="font-display text-2xl font-bold">Inicia sesión</h1>
+        <p className="max-w-sm text-muted">
+          Para registrar un centro de acopio y poder administrar sus necesidades más adelante, debes iniciar sesión con tu cuenta.
+        </p>
+        <Button onClick={iniciarSesion}>Iniciar sesión con Google</Button>
       </div>
     );
   }

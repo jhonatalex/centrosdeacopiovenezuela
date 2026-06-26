@@ -13,12 +13,16 @@ import {
   MessageSquarePlus,
   Loader2,
   LogIn,
+  Pencil,
+  Save,
+  X,
 } from "lucide-react";
 import {
   obtenerCentro,
   listarReviews,
   crearReview,
   nuevoId,
+  actualizarNecesidadesCentro,
 } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import type { Centro, Review } from "@/lib/types";
@@ -27,9 +31,9 @@ import {
   Button,
   Card,
   Spinner,
-  StarRating,
   Textarea,
   EmptyState,
+  ChipInput,
 } from "@/components/ui";
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
@@ -42,6 +46,11 @@ function Detalle() {
   const [cargando, setCargando] = useState(true);
   const [fotoActiva, setFotoActiva] = useState(0);
 
+  const [editando, setEditando] = useState(false);
+  const [editNecesita, setEditNecesita] = useState<string[]>([]);
+  const [editSobra, setEditSobra] = useState<string[]>([]);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+
   const [rating, setRating] = useState(5);
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -49,7 +58,11 @@ function Detalle() {
   async function recargar() {
     const c = await obtenerCentro(id);
     setCentro(c);
-    if (c) setReviews(await listarReviews(c.id));
+    if (c) {
+      setReviews(await listarReviews(c.id));
+      setEditNecesita(c.necesita);
+      setEditSobra(c.sobra);
+    }
     setCargando(false);
   }
 
@@ -77,6 +90,18 @@ function Detalle() {
       await recargar();
     } finally {
       setEnviando(false);
+    }
+  }
+
+  async function guardarEdicion() {
+    if (!centro) return;
+    setGuardandoEdicion(true);
+    try {
+      await actualizarNecesidadesCentro(centro.id, editNecesita, editSobra);
+      await recargar();
+      setEditando(false);
+    } finally {
+      setGuardandoEdicion(false);
     }
   }
 
@@ -148,28 +173,84 @@ function Detalle() {
           </Button>
         </a>
 
-        {(centro.necesita.length > 0 || centro.sobra.length > 0) && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {centro.necesita.length > 0 && (
-              <Card className="p-4">
-                <p className="mb-2 text-sm font-semibold text-danger">Necesita con urgencia</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {centro.necesita.map((n) => (
-                    <Badge key={n} tono="danger">{n}</Badge>
-                  ))}
+        {(centro.necesita.length > 0 || centro.sobra.length > 0 || editando) && (
+          <div className="grid gap-3 sm:grid-cols-2 relative">
+            {!editando && usuario?.uid === centro.creadorUid && (
+              <div className="absolute -top-10 right-0">
+                <Button size="sm" variant="secondary" onClick={() => setEditando(true)}>
+                  <Pencil className="size-4" /> Editar suministros
+                </Button>
+              </div>
+            )}
+            
+            {editando ? (
+              <Card className="col-span-1 sm:col-span-2 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display font-bold">Editar suministros</h3>
+                  <button onClick={() => setEditando(false)} className="text-muted hover:text-foreground">
+                    <X className="size-5" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-danger">Necesita con urgencia</label>
+                    <ChipInput
+                      valores={editNecesita}
+                      onChange={setEditNecesita}
+                      tono="danger"
+                      placeholder="Ej. agua potable"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-success">Puede compartir / dona</label>
+                    <ChipInput
+                      valores={editSobra}
+                      onChange={setEditSobra}
+                      tono="success"
+                      placeholder="Ej. frazadas"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="secondary" onClick={() => setEditando(false)}>Cancelar</Button>
+                    <Button onClick={guardarEdicion} cargando={guardandoEdicion}>
+                      <Save className="size-4 mr-1" /> Guardar cambios
+                    </Button>
+                  </div>
                 </div>
               </Card>
+            ) : (
+              <>
+                {centro.necesita.length > 0 && (
+                  <Card className="p-4">
+                    <p className="mb-2 text-sm font-semibold text-danger">Necesita con urgencia</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {centro.necesita.map((n) => (
+                        <Badge key={n} tono="danger">{n}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {centro.sobra.length > 0 && (
+                  <Card className="p-4">
+                    <p className="mb-2 text-sm font-semibold text-success">Puede compartir / dona</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {centro.sobra.map((s) => (
+                        <Badge key={s} tono="success">{s}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+              </>
             )}
-            {centro.sobra.length > 0 && (
-              <Card className="p-4">
-                <p className="mb-2 text-sm font-semibold text-success">Puede compartir / dona</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {centro.sobra.map((s) => (
-                    <Badge key={s} tono="success">{s}</Badge>
-                  ))}
-                </div>
-              </Card>
-            )}
+          </div>
+        )}
+
+        {/* Edit button if empty (only if creator) */}
+        {!editando && centro.necesita.length === 0 && centro.sobra.length === 0 && usuario?.uid === centro.creadorUid && (
+          <div className="flex justify-center">
+            <Button size="sm" variant="secondary" onClick={() => setEditando(true)}>
+              <Pencil className="size-4" /> Añadir suministros
+            </Button>
           </div>
         )}
 

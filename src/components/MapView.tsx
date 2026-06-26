@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import Link from "next/link";
@@ -75,7 +75,7 @@ export default function MapView({
   puntoElegido,
   className,
 }: MapViewProps) {
-  const ref = useRef<L.Map | null>(null);
+  const [map, setMap] = useState<L.Map | null>(null);
   const iconElegido = useMemo(() => pin("#7c6cf0", false), []);
 
   return (
@@ -85,60 +85,62 @@ export default function MapView({
       scrollWheelZoom
       className={className}
       style={{ height: "100%", width: "100%" }}
-      ref={(m) => {
-        ref.current = m;
-      }}
+      ref={setMap}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
-      />
+      {map ? (
+        <>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
 
-      {centros.map((c) => {
-        const urgente = c.necesita.length > 0;
-        return (
-          <Marker
-            key={c.id}
-            position={[c.ubicacion.lat, c.ubicacion.lng]}
-            icon={pin(urgente ? "#15b8a6" : "#34c277", urgente)}
-          >
-            <Popup>
-              <div className="w-56 p-3 font-sans">
-                <p className="font-display text-sm font-bold text-foreground">{c.nombre}</p>
-                <p className="mt-0.5 text-xs text-muted">
-                  {c.zona ? `${c.zona}, ` : ""}
-                  {c.ciudad}
-                </p>
-                {typeof c.ratingProm === "number" && c.ratingCount ? (
-                  <p className="mt-1 inline-flex items-center gap-1 text-xs text-foreground">
-                    <Star className="size-3 fill-accent text-accent" /> {c.ratingProm}
-                    <span className="text-muted">({c.ratingCount})</span>
-                  </p>
-                ) : null}
-                {c.necesita.length > 0 && (
-                  <p className="mt-1.5 text-xs">
-                    <span className="font-semibold text-danger">Necesita:</span>{" "}
-                    {c.necesita.slice(0, 3).join(", ")}
-                  </p>
-                )}
-                <Link
-                  href={`/centro?id=${c.id}`}
-                  className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white"
-                >
-                  Ver detalle
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+          {centros.map((c) => {
+            const urgente = c.necesita.length > 0;
+            return (
+              <Marker
+                key={c.id}
+                position={[c.ubicacion.lat, c.ubicacion.lng]}
+                icon={pin(urgente ? "#15b8a6" : "#34c277", urgente)}
+              >
+                <Popup>
+                  <div className="w-56 p-3 font-sans">
+                    <p className="font-display text-sm font-bold text-foreground">{c.nombre}</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {c.zona ? `${c.zona}, ` : ""}
+                      {c.ciudad}
+                    </p>
+                    {typeof c.ratingProm === "number" && c.ratingCount ? (
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs text-foreground">
+                        <Star className="size-3 fill-accent text-accent" /> {c.ratingProm}
+                        <span className="text-muted">({c.ratingCount})</span>
+                      </p>
+                    ) : null}
+                    {c.necesita.length > 0 && (
+                      <p className="mt-1.5 text-xs">
+                        <span className="font-semibold text-danger">Necesita:</span>{" "}
+                        {c.necesita.slice(0, 3).join(", ")}
+                      </p>
+                    )}
+                    <Link
+                      href={`/centro?id=${c.id}`}
+                      className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white"
+                    >
+                      Ver detalle
+                    </Link>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })}
 
-      {miUbicacion && <Marker position={[miUbicacion.lat, miUbicacion.lng]} icon={userIcon} />}
-      {puntoElegido && <Marker position={[puntoElegido.lat, puntoElegido.lng]} icon={iconElegido} />}
+          {miUbicacion && <Marker position={[miUbicacion.lat, miUbicacion.lng]} icon={userIcon} />}
+          {puntoElegido && <Marker position={[puntoElegido.lat, puntoElegido.lng]} icon={iconElegido} />}
 
-      <Recenter punto={enfocar ?? miUbicacion ?? null} />
-      <ClickHandler onPick={onPick} />
+          <Recenter punto={enfocar ?? miUbicacion ?? null} />
+          <ClickHandler onPick={onPick} />
+        </>
+      ) : null}
     </MapContainer>
   );
 }
