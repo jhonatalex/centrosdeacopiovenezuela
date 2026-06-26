@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ShieldCheck,
@@ -14,8 +14,12 @@ import {
   LogIn,
   Edit,
   Save,
+  Camera,
+  Loader2,
+  MessageSquare,
 } from "lucide-react";
-import { listarCentros, moderarCentro, actualizarCentro, listarUsuarios } from "@/lib/db";
+import { listarCentros, moderarCentro, actualizarCentro, listarUsuarios, subirFoto } from "@/lib/db";
+import { fileADataUrl } from "@/lib/img";
 import { useAuth } from "@/lib/auth";
 import type { Centro, EstadoModeracion, Usuario } from "@/lib/types";
 import {
@@ -59,6 +63,10 @@ export default function AdminPage() {
   const [editInstitucion, setEditInstitucion] = useState("");
   const [editRegNombre, setEditRegNombre] = useState("");
   const [editRegContacto, setEditRegContacto] = useState("");
+  // Fotos del editor: mezcla de URLs existentes + nuevos dataURLs
+  const [editFotos, setEditFotos] = useState<string[]>([]);
+  const [procesandoFoto, setProcesandoFoto] = useState(false);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
 
   async function recargar() {
     setCentros(await listarCentros());
@@ -96,12 +104,45 @@ export default function AdminPage() {
     setEditInstitucion(c.institucion || "");
     setEditRegNombre(c.registradorNombre || "");
     setEditRegContacto(c.registradorContacto || "");
+    setEditFotos(c.fotos || []);
   };
+
+  async function onFotosEdicion(files: FileList | null) {
+    if (!files) return;
+    setProcesandoFoto(true);
+    try {
+      const restantes = 3 - editFotos.length;
+      const nuevas: string[] = [];
+      for (const f of Array.from(files).slice(0, restantes)) {
+        nuevas.push(await fileADataUrl(f));
+      }
+      setEditFotos((p) => [...p, ...nuevas].slice(0, 3));
+    } finally {
+      setProcesandoFoto(false);
+      // Reset input so the same file can be re-selected if needed
+      if (fotoInputRef.current) fotoInputRef.current.value = "";
+    }
+  }
 
   const guardarCambios = async () => {
     if (!editando || !editNombre.trim() || !editDireccion.trim() || !editCiudad.trim() || editContacto.length === 0) return;
     setProcesando(editando.id);
     try {
+      // Upload any new photos (dataURLs) to Storage; keep existing URLs as-is
+      const urlsFinales: string[] = [];
+      let newPhotoIndex = 0;
+      for (const foto of editFotos) {
+        if (foto.startsWith("data:")) {
+          // New photo — upload to Storage
+          const ruta = `centros/${editando.id}/edit_${Date.now()}_${newPhotoIndex}.jpg`;
+          urlsFinales.push(await subirFoto(foto, ruta));
+          newPhotoIndex++;
+        } else {
+          // Existing URL — keep as-is
+          urlsFinales.push(foto);
+        }
+      }
+
       const centroActualizado: Centro = {
         ...editando,
         nombre: editNombre.trim(),
@@ -115,6 +156,7 @@ export default function AdminPage() {
         institucion: editInstitucion.trim() || undefined,
         registradorNombre: editRegNombre.trim() || undefined,
         registradorContacto: editRegContacto.trim() || undefined,
+        fotos: urlsFinales,
       };
       await actualizarCentro(centroActualizado);
       setEditando(null);
@@ -163,6 +205,23 @@ export default function AdminPage() {
         icon={<ShieldCheck className="size-5" />}
         color="var(--accent)"
       />
+
+      {/* Acceso rápido a WhaiBot */}
+      <Link
+        href="/admin/whaibot"
+        className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-[#25D366]/30 bg-[#25D366]/5 px-4 py-3 hover:bg-[#25D366]/10 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid size-9 place-items-center rounded-xl bg-[#25D366] text-white">
+            <MessageSquare className="size-5" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">WhaiBot — Mensajería</p>
+            <p className="text-xs text-muted">Configura el bot y envía mensajes a los centros</p>
+          </div>
+        </div>
+        <svg className="size-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+      </Link>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {filtros.map((f) => {
@@ -443,6 +502,57 @@ export default function AdminPage() {
             </h3>
 
             <div className="space-y-4 text-sm">
+
+              {/* ── Fotos ── */}
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">Fotos del centro <span className="font-normal normal-case">(máx. 3)</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {editFotos.map((f, i) => (
+                    <div key={i} className="relative size-24 overflow-hidden rounded-xl border border-border bg-surface-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={f} alt={`Foto ${i + 1}`} className="size-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setEditFotos((p) => p.filter((_, j) => j !== i))}
+                        aria-label="Quitar foto"
+                        className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                      {i === 0 && (
+                        <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 py-0.5 text-[9px] font-bold text-white uppercase tracking-wide">Principal</span>
+                      )}
+                    </div>
+                  ))}
+                  {editFotos.length < 3 && (
+                    <label
+                      className={`grid size-24 cursor-pointer place-items-center rounded-xl border-2 border-dashed border-border text-muted transition-colors hover:border-primary hover:text-primary ${
+                        procesandoFoto ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      {procesandoFoto ? (
+                        <Loader2 className="size-6 animate-spin" />
+                      ) : (
+                        <span className="flex flex-col items-center gap-1 text-[11px]">
+                          <Camera className="size-6" /> Añadir
+                        </span>
+                      )}
+                      <input
+                        ref={fotoInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => onFotosEdicion(e.target.files)}
+                      />
+                    </label>
+                  )}
+                </div>
+                {editFotos.length === 0 && (
+                  <p className="mt-2 text-xs text-muted">Sin fotos. Añade al menos una imagen del centro.</p>
+                )}
+              </div>
+
               <Field label="Nombre del centro" required>
                 <Input value={editNombre} onChange={(e) => setEditNombre(e.target.value)} />
               </Field>

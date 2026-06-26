@@ -104,3 +104,20 @@ export interface Usuario {
   foto?: string;
   esAdmin: boolean;
 }
+
+/** Credenciales de WhaiBot para envío de mensajes vía API */
+export interface WhaibotConfig {
+  botId: string;    // x-client-botid
+  apiKey: string;   // x-client-key (clientKey)
+  updatedAt: number;
+}
+
+/** Plantilla de mensaje de WhatsApp */
+export interface WhaibotPlantilla {
+  id: string;
+  nombre: string;       // Ej: "Alerta de suministros"
+  mensaje: string;      // Texto del mensaje (puede incluir {nombre})
+  mediaUrl?: string;    // URL de imagen opcional
+  creadoEn: number;
+}
+

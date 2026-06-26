@@ -16,6 +16,8 @@ import type {
   Rescate,
   Baliza,
   Usuario,
+  WhaibotConfig,
+  WhaibotPlantilla,
 } from "./types";
 
 export const esDemo = !firebaseHabilitado;
@@ -282,4 +284,79 @@ export async function guardarUsuario(u: Usuario): Promise<void> {
 export async function listarUsuarios(): Promise<Usuario[]> {
   const all = esDemo ? lsGet<Usuario>("usuarios", []) : await fsAll<Usuario>("usuarios");
   return all.sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+
+/* =============================== WHAIBOT =============================== */
+
+const WHAIBOT_DOC_ID = "config";
+
+/** Lee la configuración de WhaiBot (botId + apiKey) */
+export async function obtenerWhaibotConfig(): Promise<WhaibotConfig | null> {
+  if (esDemo) {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("acopio:whaibot_config") : null;
+    return raw ? (JSON.parse(raw) as WhaibotConfig) : null;
+  }
+  const { db } = getFirebase();
+  const { doc, getDoc } = await import("firebase/firestore");
+  const snap = await getDoc(doc(db!, "whaibot", WHAIBOT_DOC_ID));
+  return snap.exists() ? (snap.data() as WhaibotConfig) : null;
+}
+
+/** Guarda (o actualiza) las credenciales de WhaiBot */
+export async function guardarWhaibotConfig(config: WhaibotConfig): Promise<void> {
+  if (esDemo) {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:whaibot_config", JSON.stringify(config));
+    }
+    return;
+  }
+  await fsSet("whaibot", WHAIBOT_DOC_ID, config as unknown as object);
+}
+
+/** Lista todas las plantillas de mensaje */
+export async function listarPlantillas(): Promise<WhaibotPlantilla[]> {
+  if (esDemo) {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("acopio:whaibot_plantillas") : null;
+    return raw ? (JSON.parse(raw) as WhaibotPlantilla[]) : [];
+  }
+  return fsAll<WhaibotPlantilla>("whaibot_plantillas");
+}
+
+/** Crea una nueva plantilla */
+export async function crearPlantilla(p: WhaibotPlantilla): Promise<void> {
+  if (esDemo) {
+    const all = await listarPlantillas();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:whaibot_plantillas", JSON.stringify([p, ...all]));
+    }
+    return;
+  }
+  await fsSet("whaibot_plantillas", p.id, p as unknown as object);
+}
+
+/** Actualiza una plantilla existente */
+export async function actualizarPlantilla(p: WhaibotPlantilla): Promise<void> {
+  if (esDemo) {
+    const all = await listarPlantillas();
+    const updated = all.map((x) => (x.id === p.id ? p : x));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:whaibot_plantillas", JSON.stringify(updated));
+    }
+    return;
+  }
+  await fsSet("whaibot_plantillas", p.id, p as unknown as object);
+}
+
+/** Elimina una plantilla */
+export async function eliminarPlantilla(id: string): Promise<void> {
+  if (esDemo) {
+    const all = await listarPlantillas();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:whaibot_plantillas", JSON.stringify(all.filter((x) => x.id !== id)));
+    }
+    return;
+  }
+  const { db } = getFirebase();
+  const { doc, deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(db!, "whaibot_plantillas", id));
 }
