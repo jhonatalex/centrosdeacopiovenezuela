@@ -27,6 +27,8 @@ export interface Centro {
   registradorNombre?: string;
   registradorContacto?: string;
   creadorUid?: string; // UID del usuario que registró el centro
+  registradorUid?: string;
+  registradorEmail?: string;
   // Moderación
   estado: EstadoModeracion;
   motivoRechazo?: string;
@@ -123,4 +125,16 @@ export interface Usuario {
   email: string;
   foto?: string;
   esAdmin: boolean;
+}
+
+export interface SolicitudResponsabilidad {
+  id: string;
+  centroId: string;
+  centroNombre: string;
+  solicitanteUid: string;
+  solicitanteNombre: string;
+  solicitanteEmail: string;
+  solicitanteContacto: string;
+  creadoEn: number;
+  estado: "pendiente" | "aceptada" | "rechazada";
 }

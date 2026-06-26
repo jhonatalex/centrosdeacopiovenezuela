@@ -17,11 +17,20 @@ const firebaseConfig = {
 /** true cuando hay credenciales reales de Firebase configuradas. */
 export const firebaseHabilitado = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
 
-/** Correos con permiso de administrador (separados por coma en la env var). */
-export const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
+/** Correos con permiso de administrador (hardcoded + configurados por env var). */
+const administradoresDefinidos = [
+  "neptalyx@gmail.com",
+  "dirsdeveloper@gmail.com",
+  "marketglobaldeveloper@gmail.com",
+];
+
+export const adminEmails = [
+  ...administradoresDefinidos,
+  ...(process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+];
 
 let app: FirebaseApp | undefined;
 let dbInstance: Firestore | undefined;
