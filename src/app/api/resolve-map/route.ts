@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 
+// NOTA: el sitio se publica como export estático (Firebase Hosting), que no
+// ejecuta código de servidor. Marcamos la ruta como estática para que el build
+// no falle. Esta función NO funcionará en web.app; para activarla hay que
+// desplegar en un entorno con servidor (Firebase App Hosting, Cloud Functions, etc.).
+export const dynamic = "force-static";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const targetUrl = searchParams.get("url");
