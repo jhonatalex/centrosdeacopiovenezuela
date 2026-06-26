@@ -46,3 +46,5 @@ next-env.d.ts
 api-whaibot.md
 importar.json
 datafull.json
+# data export grande (regenerable con scripts/export-hospitalizaciones.mjs)
+scripts/hospitalizaciones-data.json

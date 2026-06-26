@@ -35,6 +35,24 @@ const userIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+/** Ícono de hospital con badge de cantidad de pacientes. */
+function hospitalIcon(count: number) {
+  return L.divIcon({
+    className: "acopio-pin",
+    html: `
+      <div style="position:relative;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))">
+        <svg width="38" height="38" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="2" width="36" height="36" rx="11" fill="#7c6cf0"/>
+          <path d="M20 11 v18 M11 20 h18" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
+        <span style="position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#f15b5b;border:2px solid white;color:#fff;font-size:10px;font-weight:700;line-height:15px;text-align:center;font-family:sans-serif">${count}</span>
+      </div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -16],
+  });
+}
+
 function Recenter({ punto, zoom }: { punto: GeoPunto | null; zoom?: number }) {
   const map = useMap();
   useEffect(() => {
@@ -57,8 +75,15 @@ function ClickHandler({ onPick }: { onPick?: (p: GeoPunto) => void }) {
   return null;
 }
 
+export interface HospitalMarker {
+  nombre: string;
+  ubicacion: GeoPunto;
+  pacientes: number;
+}
+
 export interface MapViewProps {
   centros: Centro[];
+  hospitales?: HospitalMarker[];
   miUbicacion?: GeoPunto | null;
   enfocar?: GeoPunto | null;
   /** Modo selección: clic en el mapa elige un punto (formulario). */
@@ -69,6 +94,7 @@ export interface MapViewProps {
 
 export default function MapView({
   centros,
+  hospitales = [],
   miUbicacion,
   enfocar,
   onPick,
@@ -158,6 +184,33 @@ export default function MapView({
               </Marker>
             );
           })}
+
+          {hospitales.map((h) => (
+            <Marker
+              key={`hosp-${h.nombre}`}
+              position={[h.ubicacion.lat, h.ubicacion.lng]}
+              icon={hospitalIcon(h.pacientes)}
+            >
+              <Popup>
+                <div className="w-56 p-3 font-sans">
+                  <p className="font-display text-sm font-bold text-foreground">{h.nombre}</p>
+                  <p className="mt-1 text-xs">
+                    <span className="font-semibold" style={{ color: "#7c6cf0" }}>
+                      {h.pacientes}
+                    </span>{" "}
+                    <span className="text-muted">paciente(s) registrados</span>
+                  </p>
+                  <Link
+                    href={`/medicos?hospital=${encodeURIComponent(h.nombre)}`}
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-full px-3 py-1.5 text-xs font-semibold text-white"
+                    style={{ background: "#7c6cf0" }}
+                  >
+                    Ver pacientes
+                  </Link>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
 
           {miUbicacion && <Marker position={[miUbicacion.lat, miUbicacion.lng]} icon={userIcon} />}
           {puntoElegido && <Marker position={[puntoElegido.lat, puntoElegido.lng]} icon={iconElegido} />}
