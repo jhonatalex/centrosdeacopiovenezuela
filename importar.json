@@ -2,358 +2,22 @@
     {
         "attributes": {
             "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "PEDRO MARIA MORANTES",
-            "estado": "Táchira",
-            "direccion": "oficina mrw, pedro maria morantes",
-            "globalid": "{C98C10B6-A324-46A1-8389-2E2F06DD1DBA}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Alimentos no perecederos, ropa, calzado, sabanas, articulos de higiene personal, suministros de primeros auxilios, medicamentos",
-            "long": null,
-            "organización_o_persona_de_conta": "MRW",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 149,
-            "lat": null
-        },
-        "geometry": {
-            "x": -8039593.8015345,
-            "y": 867344.93550317
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "MAIQUETÍA",
-            "estado": "La Guaira",
-            "direccion": "oficina zoom, maiquetía",
-            "globalid": "{47983D6D-725A-4E1A-8039-5860E67E70D4}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Zoom",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 784,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7452256.56108207,
-            "y": 1186465.86944553
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "Valencia",
-            "estado": "Carabobo",
-            "direccion": "Calle 97, Centro Empresarial Palmi II, Oficinas 5 y 6, Zona Industrial Castillito",
-            "globalid": "{6C480824-64CB-4400-9CB2-05BFB6FF7125}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Agua embotellada, Alimentos no perecederos, cobijas y ropa en buen estado, artículos de higiene personal\t",
-            "long": null,
-            "organización_o_persona_de_conta": "Fibras Sublimación Textil",
-            "organizacionopersona": null,
-            "id": 84,
-            "objectid": 101,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7565655.58938162,
-            "y": 1139952.1320881
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "URBANA NAGUANAGUA",
-            "estado": "Carabobo",
-            "direccion": "oficina zoom, urbana naguanagua",
-            "globalid": "{A2B8EDAF-B4D0-4505-9721-1A34DC679F91}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Zoom",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 688,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7571239.59734452,
-            "y": 1146312.55627791
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "URBANA SAN DIEGO",
-            "estado": "Carabobo",
-            "direccion": "oficina zoom, urbana san diego",
-            "globalid": "{026F51ED-6E40-4C3F-A437-FFC043FFE418}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Zoom",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 690,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7565376.9786324,
-            "y": 1140032.55992434
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "EL LLANO",
-            "estado": "Mérida",
-            "direccion": "oficina zoom, el llano",
-            "globalid": "{F45957C5-C6B4-4A40-B96F-4097A07C0E34}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Zoom",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 682,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7920816.07180609,
-            "y": 959614.945664935
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "EL LLANO",
-            "estado": "Mérida",
-            "direccion": "oficina zoom, el llano",
-            "globalid": "{054EEF24-093D-40E9-A635-EA7061366091}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Zoom",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 683,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7920816.07180609,
-            "y": 959614.945664935
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "CHACAO",
+            "poblado_o_ciudad": "LA DOLORITA",
             "estado": "Miranda",
-            "direccion": "oficina mrw, chacao",
-            "globalid": "{B1860964-A0D2-420E-B1ED-F0DFC5346D28}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Alimentos no perecederos, ropa, calzado, sabanas, articulos de higiene personal, suministros de primeros auxilios, medicamentos",
-            "long": null,
-            "organización_o_persona_de_conta": "MRW",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 147,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7442353.86863803,
-            "y": 1173723.559408
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "SAN JUAN BAUTISTA",
-            "estado": "Táchira",
-            "direccion": "oficina zoom, san juan bautista",
-            "globalid": "{CBFDB58B-D52F-4D51-8390-7CD43959E6A3}",
+            "direccion": "oficina tealca, la dolorita",
+            "globalid": "{74973ABD-9D1E-434A-8057-74081A04579C}",
             "numeros_de_contacto": null,
             "solicitan_materiales": "Sin información",
             "long": null,
-            "organización_o_persona_de_conta": "Zoom",
+            "organización_o_persona_de_conta": "Tealca Filas De Mariche",
             "organizacionopersona": null,
             "id": null,
-            "objectid": 686,
+            "objectid": 308,
             "lat": null
         },
         "geometry": {
-            "x": -8041049.78255818,
-            "y": 868810.130680755
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "Maracaibo",
-            "estado": "Zulia",
-            "direccion": "Basílica Santuario De Nuestra Señora De Chiquinquira y San Juan De Dios, Av. 12 con calle 96, final Paseo Ciencias (8am a 6pm)",
-            "globalid": "{B7C4F10D-DCD1-48BD-831A-2A89E40986C0}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Agua potable, alimentos no perecederos, productos de higiene, medicamentos para el malestar y refriadi, insumos médicos, colchonetas o hamacas, mantas, sábanas y cobijas",
-            "long": null,
-            "organización_o_persona_de_conta": "Basílica Nuestra Señora del Rosario de Chiquinquira",
-            "organizacionopersona": null,
-            "id": 97,
-            "objectid": 118,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7972235.14596613,
-            "y": 1191651.00415736
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "UNARE",
-            "estado": "Bolívar",
-            "direccion": "oficina tealca, unare",
-            "globalid": "{42A6F999-15DF-41A2-957F-DA54A4BE6345}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 271,
-            "lat": null
-        },
-        "geometry": {
-            "x": -6990579.63388782,
-            "y": 923385.123038761
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "UNARE",
-            "estado": "Bolívar",
-            "direccion": "oficina tealca, unare",
-            "globalid": "{A140530D-705A-4FB4-9DFC-B4D7CC233CF5}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 272,
-            "lat": null
-        },
-        "geometry": {
-            "x": -6987555.16128852,
-            "y": 923209.236961197
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "SAN PEDRO",
-            "estado": "Dtto Capital",
-            "direccion": "oficina tealca, san pedro",
-            "globalid": "{C4155ADE-2F95-4D21-8BFE-AFAAFF948C4A}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 302,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7446155.206613,
-            "y": 1173853.59228259
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "SANTA ROSALIA",
-            "estado": "Dtto Capital",
-            "direccion": "oficina tealca, santa rosalia",
-            "globalid": "{CC20D186-69B4-4456-B994-8BE6949205AD}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 303,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7449091.16912812,
-            "y": 1173430.80038048
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "Pampatar",
-            "estado": "Nueva Esparta",
-            "direccion": "CC Parque Costazul, entre las entradas Palma y Roble. Local LB1-04 diagonal a Multimax",
-            "globalid": "{5F19D9A7-5F58-43CA-B594-4FC5F8AE9D4F}",
-            "numeros_de_contacto": "04247479774, 04123590997, 04248550192",
-            "solicitan_materiales": "Alimentos no perecederos, agua potable, ropa, sabanas y cobijas, medicamentos",
-            "long": null,
-            "organización_o_persona_de_conta": "By Las Flores, Floristería",
-            "organizacionopersona": null,
-            "id": 92,
-            "objectid": 112,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7105041.03115872,
-            "y": 1231139.78463252
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "Maracaibo",
-            "estado": "Zulia",
-            "direccion": "CC Delicias Norte",
-            "globalid": "{69A94475-9895-4433-81B4-E09EF2F00F46}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Ropa en buen estado, alimentos no perecederos, mantas o cobijas, artículos para bebés, cualquier otro producto que desees compartir",
-            "long": null,
-            "organización_o_persona_de_conta": "Super Fresh Market",
-            "organizacionopersona": null,
-            "id": 98,
-            "objectid": 119,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7973216.03099457,
-            "y": 1196872.72345913
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "URBANA GUACARA",
-            "estado": "Carabobo",
-            "direccion": "oficina tealca, urbana guacara",
-            "globalid": "{121860B0-8D1A-4C3F-8B8C-1DFB460B3779}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca: Guacara",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 261,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7556435.2405457,
-            "y": 1145191.32910032
+            "x": -7432960.56303609,
+            "y": 1172329.03605702
         }
     },
     {
@@ -361,20 +25,104 @@
             "reciben_ayuda_economica": null,
             "poblado_o_ciudad": "LEONCIO MARTÍNEZ",
             "estado": "Miranda",
-            "direccion": "oficina mrw, leoncio martínez",
-            "globalid": "{B32BCD6D-3A9D-4AF1-A504-55C27A6F5344}",
+            "direccion": "oficina tealca, leoncio martínez",
+            "globalid": "{59A3861F-E1F3-451D-B145-43C4186A5C1D}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 262,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7439243.32378363,
+            "y": 1175256.2033
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CATEDRAL",
+            "estado": "Dtto Capital",
+            "direccion": "oficina mrw, catedral",
+            "globalid": "{55D71EAA-3DBB-4CA7-A71F-F7F14C0A93B5}",
             "numeros_de_contacto": null,
             "solicitan_materiales": "Alimentos no perecederos, ropa, calzado, sabanas, articulos de higiene personal, suministros de primeros auxilios, medicamentos",
             "long": null,
             "organización_o_persona_de_conta": "MRW",
             "organizacionopersona": null,
             "id": null,
-            "objectid": 155,
+            "objectid": 171,
             "lat": null
         },
         "geometry": {
-            "x": -7439572.47325582,
-            "y": 1174719.53593117
+            "x": -7448852.01029754,
+            "y": 1176007.52645368
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Caracas",
+            "estado": "Miranda",
+            "direccion": "Municipio Chacao, Av Principal del Bosque, frente a Plaza Brión. ",
+            "globalid": "{FC3EEF40-CAE8-427B-B80A-8435A63B5A5D}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Agua potable, ropa en buen estado, tapabocas, medicamentos, alimentos no perecederos y artículos de higiene personal",
+            "long": null,
+            "organización_o_persona_de_conta": "Ferretería EPA - Chacaíto",
+            "organizacionopersona": null,
+            "id": 65,
+            "objectid": 79,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7443671.55037952,
+            "y": 1174478.49416647
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "SAN ANTONIO DE LOS ALTOS",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, san antonio de los altos",
+            "globalid": "{7CDC026E-A91F-46E9-B128-5648270441D1}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 259,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7454093.05437695,
+            "y": 1161168.54629974
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "LOS TEQUES",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, los teques",
+            "globalid": "{4AB3C89F-F436-4054-80D2-4375ED22554D}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 260,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7461977.16828758,
+            "y": 1158850.57397274
         }
     },
     {
@@ -382,20 +130,83 @@
             "reciben_ayuda_economica": null,
             "poblado_o_ciudad": "PETARE",
             "estado": "Miranda",
-            "direccion": "oficina mrw, petare",
-            "globalid": "{8971197F-F44F-4991-8505-6F792447588B}",
+            "direccion": "oficina tealca, petare",
+            "globalid": "{D84707AF-6C25-4CBB-B62E-8AF4C7718FF8}",
             "numeros_de_contacto": null,
-            "solicitan_materiales": "Alimentos no perecederos, ropa, calzado, sabanas, articulos de higiene personal, suministros de primeros auxilios, medicamentos",
+            "solicitan_materiales": "Sin información",
             "long": null,
-            "organización_o_persona_de_conta": "MRW",
+            "organización_o_persona_de_conta": "Tealca",
             "organizacionopersona": null,
             "id": null,
-            "objectid": 158,
+            "objectid": 287,
             "lat": null
         },
         "geometry": {
-            "x": -7436919.19539704,
-            "y": 1172254.06039764
+            "x": -7437141.31114844,
+            "y": 1174431.95366531
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "PETARE",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, petare",
+            "globalid": "{5372040A-C9BE-4163-AD3D-CC0A4FB82E08}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 288,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7438715.14610579,
+            "y": 1173580.68908403
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "LEONCIO MARTÍNEZ",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, leoncio martínez",
+            "globalid": "{1EFA7BEB-1641-40AC-A8DD-52BFCFB9DA84}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 289,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7439246.91940882,
+            "y": 1175083.15508746
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "LEONCIO MARTÍNEZ",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, leoncio martínez",
+            "globalid": "{7968771D-4A98-4DE8-8D90-C21DBE847C99}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 290,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7438632.13517775,
+            "y": 1174503.01688256
         }
     },
     {
@@ -403,41 +214,482 @@
             "reciben_ayuda_economica": null,
             "poblado_o_ciudad": "CHACAO",
             "estado": "Miranda",
-            "direccion": "oficina mrw, chacao",
-            "globalid": "{9AE668BE-0DCC-4A18-937A-5E9FA4FE79C5}",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{E1B861D9-5079-41C3-B30C-6C2C686CB668}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 291,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7442755.69857366,
+            "y": 1174418.66255766
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CHACAO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{21999A02-CF96-4B37-8968-FAB138AF3700}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 292,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7441649.00476571,
+            "y": 1175008.36596845
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CHACAO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{CACA1E92-1E04-45A8-A370-0C7B176E0A62}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 293,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7441950.7250318,
+            "y": 1174653.64608921
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Maiquetía (Aeropuerto)",
+            "estado": "La Guaira",
+            "direccion": "Sede Avior Cargo en el aeropuerto nacional de Maiquetía, horario laboral",
+            "globalid": "{0550503E-3568-42FD-8212-072CD163FD4B}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Todo",
+            "long": -67.00178572,
+            "organización_o_persona_de_conta": "Avior Cargo",
+            "organizacionopersona": "Avior Cargo",
+            "id": 47,
+            "objectid": 57,
+            "lat": 10.59767643
+        },
+        "geometry": {
+            "x": -7458604.66914702,
+            "y": 1186512.82666915
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Maracaibo",
+            "estado": "Zulia",
+            "direccion": "Sede administrativa del Parque Monumental",
+            "globalid": "{035DD009-ED58-4B9F-B361-591A59955ECD}",
+            "numeros_de_contacto": "4146073460",
+            "solicitan_materiales": "Alimentos no perecederos, comida para animales, agua potable, medicinas e insumos básicos, ropa y calzado, lencería: cobijas, sabanas y toallas",
+            "long": null,
+            "organización_o_persona_de_conta": "Parque Monumental Ana María Campos",
+            "organizacionopersona": null,
+            "id": 96,
+            "objectid": 117,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7975335.75810254,
+            "y": 1194609.17538606
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": "Banco Provincial. Cuenta Corriente 0108-0109-5401-0011-3611.  Rif J-30503323, a nombre de Parroquia Basílica Santa Lucia, Pago móvil: 04122172836. ",
+            "poblado_o_ciudad": "Timotes",
+            "estado": "Mérida",
+            "direccion": "Teatro Parroquial Juan Pablo II, Timotes",
+            "globalid": "{6A27635E-103C-496C-AE73-625FB5CBB374}",
+            "numeros_de_contacto": "04267912411, 042477931322",
+            "solicitan_materiales": "Agua potable, Ropa y calzado en buen estado, Comida no perecedera, Cobijas, sábanas, colchonetas, almohadas, todo lo que se pueda",
+            "long": -70.74007006,
+            "organización_o_persona_de_conta": "Cáritas Venezuela",
+            "organizacionopersona": "Cáritas Venezuela",
+            "id": 36,
+            "objectid": 44,
+            "lat": 8.98367798
+        },
+        "geometry": {
+            "x": -7874748.57809365,
+            "y": 1004181.49695827
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Ejido",
+            "estado": "Mérida",
+            "direccion": "Sor Juan Inés (desde las 8:30am)",
+            "globalid": "{D1725A3F-659C-4C6F-9A53-8B8F60C11907}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Agua portable, alimentos no perecederos, productos de aseo personal, alimentos para animales, alcohol, gasas o algodón, ropa para el frío, cobijas y zapatos",
+            "long": -71.14578358,
+            "organización_o_persona_de_conta": "Tienda Gathanas",
+            "organizacionopersona": "Tienda Gathanas",
+            "id": 44,
+            "objectid": 53,
+            "lat": 8.60173657
+        },
+        "geometry": {
+            "x": -7919912.3999914,
+            "y": 961158.275550753
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Tovar",
+            "estado": "Mérida",
+            "direccion": "Una cuadra arriba de la Concha del Corozo, en la fábrica de bombis Kevin",
+            "globalid": "{60D113BC-9E0F-48D9-85DF-58572E057FAC}",
+            "numeros_de_contacto": "4147568589",
+            "solicitan_materiales": "Agua potable, alimentos no perecederos, comida para animales, medicinas e insumos básicos, ropa y calzado, lencería (cobijas, sabanas, toallas)",
+            "long": -71.75435581,
+            "organización_o_persona_de_conta": "Fundación Solidarios con Venezuela",
+            "organizacionopersona": "Fundación Solidarios con Venezuela",
+            "id": 45,
+            "objectid": 54,
+            "lat": 8.33499482
+        },
+        "geometry": {
+            "x": -7987658.35074593,
+            "y": 931137.383295003
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Caracas",
+            "estado": "Miranda",
+            "direccion": "Tienda Pastelitos VIP 313, Centro Comercial Xpress Macaracuay, y Aer Corredores en la Torre Exa, El Rosal",
+            "globalid": "{1A9B9013-A8B1-4CF5-8FA6-37045363C3FE}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Pastillas potabilizadoras de agua, Alimentos no perecederos, ropa en buen estado. Insumos médicos: antisépticos, antihistamínicos, gasas, vendas, guantes, mascarillas, analgésicos, cintas adhesivas, gotas oftalmológicas, antibióticos tópicos, sueros orales, probioticos",
+            "long": -66.81787779,
+            "organización_o_persona_de_conta": "Fundación Aser País (envían a Cacute)",
+            "organizacionopersona": "Fundación Aser País (envían a Cacute)",
+            "id": 6,
+            "objectid": 8,
+            "lat": 10.4559339
+        },
+        "geometry": {
+            "x": -7438132.13158129,
+            "y": 1170464.00668814
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Caracas",
+            "estado": "Dtto Capital",
+            "direccion": "Casa del Estudiante, Universidad Católica Andres Bello, Avenida Teheran. (11am a 3pm)",
+            "globalid": "{FAE7BA6D-3273-4571-A427-CA0F530FB6DC}",
+            "numeros_de_contacto": "4146011824",
+            "solicitan_materiales": "Agua potable, alimentos no perecederos, ropa, insumos médicos, sabanas y cobijas, artículos de higiene personal",
+            "long": null,
+            "organización_o_persona_de_conta": "Casa del Estudiante - UCAB",
+            "organizacionopersona": null,
+            "id": 87,
+            "objectid": 105,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7455600.52260532,
+            "y": 1171513.80378444
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Caracas",
+            "estado": "Miranda",
+            "direccion": "Local Frente al Centro Comercial San Ignacio (Lunes a Sabados de 10am a 6pm, Domingos de 11am a 8pm)",
+            "globalid": "{0DE97489-C2C7-4100-B437-583CDED4DB7E}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Agua potable, alimentos no perecederos (enlatados, pasta, arroz, legumbres), abrigo y vestimenta (ropa en buen estado, mantas, cobijas), insumos médicos y primeros auxilios",
+            "long": null,
+            "organización_o_persona_de_conta": "Tienda Ultrabikex - Caracas",
+            "organizacionopersona": null,
+            "id": 66,
+            "objectid": 80,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7442299.08768939,
+            "y": 1175175.99719108
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "La Mesa de Esnujaque",
+            "estado": "Trujillo",
+            "direccion": "Iglesia San Juan Bautista, entre calles 4 y 5 Av. Bolivar, La Mesa de Esnujaque 3146, Trujillo",
+            "globalid": "{5A6B6BAB-7EAB-454A-A3EF-205E7862D654}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Agua mineral, comida no perecedera, medicamentos, calzado, colchones, sabanas y cobijas",
+            "long": null,
+            "organización_o_persona_de_conta": "Effetá Trujillo",
+            "organizacionopersona": null,
+            "id": 93,
+            "objectid": 114,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7870832.76351691,
+            "y": 1011366.38005064
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "La Puerta",
+            "estado": "Trujillo",
+            "direccion": "Cine Parroquial, La Puerta, 25 y 26 de junio, desde las 10am",
+            "globalid": "{CD93765D-7D3C-437F-B802-30971E623DCC}",
+            "numeros_de_contacto": "4140748010",
+            "solicitan_materiales": "Agua potable, ropa, zapatos en buen estado, alimentos no perecederos, medicamentos, colchones, cobijas y almohadas, útiles de higiene personal, jueguetes",
+            "long": -70.70637424,
+            "organización_o_persona_de_conta": "La Puerta",
+            "organizacionopersona": "La Puerta",
+            "id": 46,
+            "objectid": 56,
+            "lat": 9.13062695
+        },
+        "geometry": {
+            "x": -7870997.57634675,
+            "y": 1020746.31903961
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Valera",
+            "estado": "Trujillo",
+            "direccion": "Farmacia Levy, Latin Sushi, Inversiones DP, Soinca",
+            "globalid": "{44B69EFB-F9D5-4BBE-B49C-DC7DCFB1A78D}",
+            "numeros_de_contacto": "4145180069",
+            "solicitan_materiales": "Agua potable, alimentos no perecederos, ropa para todas las edades, productos de asea personal, cobijas y sabanas",
+            "long": -70.6145452,
+            "organización_o_persona_de_conta": "Rotary Valera",
+            "organizacionopersona": "Rotary Valera",
+            "id": 48,
+            "objectid": 58,
+            "lat": 9.2994944
+        },
+        "geometry": {
+            "x": -7860775.21426259,
+            "y": 1039790.3433569
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CHACAO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{C00AA17B-D829-42A8-B2C7-CBAC41F9EA21}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 294,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7442461.44776939,
+            "y": 1175189.15764828
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "Punto Fijo",
+            "estado": "Falcón",
+            "direccion": "Entre Ave 9 y Ave 6, al lado de la Ciudad Comercial Las Virtudes.",
+            "globalid": "{DBB61F52-D7F7-4E6C-A28D-B4F87142DE88}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Agua potable, ropa en buen estado, tapabocas, medicamentos, alimentos no perecederos y artículos de higiene personal",
+            "long": null,
+            "organización_o_persona_de_conta": "Ferretería EPA - Punto Fijo",
+            "organizacionopersona": null,
+            "id": 61,
+            "objectid": 73,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7815178.25912454,
+            "y": 1306675.58007671
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CHACAO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{BBB03821-5C69-4A57-B532-FC890D88A1BB}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 295,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7441234.72919761,
+            "y": 1175209.16261088
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "PETARE",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, petare",
+            "globalid": "{3C470A0D-81CD-4409-A755-426A405BAA2B}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 296,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7438228.7467975,
+            "y": 1173300.85958397
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "EL HATILLO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, el hatillo",
+            "globalid": "{2767563A-96C7-400E-85E9-D7A43BAC3074}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 297,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7440568.43760571,
+            "y": 1167340.02951941
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "CHACAO",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, chacao",
+            "globalid": "{9C462F23-D670-4151-AD2C-4F1D370F4860}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 299,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7442297.83040504,
+            "y": 1173865.24165463
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "BARUTA",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, baruta",
+            "globalid": "{A1D00E70-FBEA-4A1F-8221-9154173393D5}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 300,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7444380.13938262,
+            "y": 1167364.51238902
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "BARUTA",
+            "estado": "Miranda",
+            "direccion": "oficina tealca, baruta",
+            "globalid": "{D56D0421-4CAC-4021-953D-AB1CF79B6699}",
+            "numeros_de_contacto": null,
+            "solicitan_materiales": "Sin información",
+            "long": null,
+            "organización_o_persona_de_conta": "Tealca",
+            "organizacionopersona": null,
+            "id": null,
+            "objectid": 301,
+            "lat": null
+        },
+        "geometry": {
+            "x": -7444250.85295064,
+            "y": 1169991.13217706
+        }
+    },
+    {
+        "attributes": {
+            "reciben_ayuda_economica": null,
+            "poblado_o_ciudad": "EL CARMEN",
+            "estado": "Barinas",
+            "direccion": "oficina mrw, el carmen",
+            "globalid": "{171E5084-3A5F-4952-9F9E-BA68CBF20525}",
             "numeros_de_contacto": null,
             "solicitan_materiales": "Alimentos no perecederos, ropa, calzado, sabanas, articulos de higiene personal, suministros de primeros auxilios, medicamentos",
             "long": null,
             "organización_o_persona_de_conta": "MRW",
             "organizacionopersona": null,
             "id": null,
-            "objectid": 159,
+            "objectid": 125,
             "lat": null
         },
         "geometry": {
-            "x": -7442622.32666812,
-            "y": 1174461.49064333
-        }
-    },
-    {
-        "attributes": {
-            "reciben_ayuda_economica": null,
-            "poblado_o_ciudad": "URBANA TOCUYITO",
-            "estado": "Carabobo",
-            "direccion": "oficina tealca, urbana tocuyito",
-            "globalid": "{0A069FD4-8F9E-44C9-AC70-EBBDD6DF3D26}",
-            "numeros_de_contacto": null,
-            "solicitan_materiales": "Sin información",
-            "long": null,
-            "organización_o_persona_de_conta": "Tealca: Tocuyito",
-            "organizacionopersona": null,
-            "id": null,
-            "objectid": 268,
-            "lat": null
-        },
-        "geometry": {
-            "x": -7579646.590001,
-            "y": 1129617.3116077
+            "x": -7817653.16046203,
+            "y": 963530.484098233
         }
     }
 ]
