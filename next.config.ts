@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  // Sin `output: "export"`: Firebase App Hosting hace un build de servidor
+  // (SSR + API routes como /api/resolve-map). El adaptador de App Hosting
+  // aplica sus propias optimizaciones de salida.
   images: { unoptimized: true },
-  // Firebase Hosting sirve archivos estáticos; el SDK de Firebase corre en el cliente.
 };
 
 export default nextConfig;

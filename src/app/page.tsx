@@ -19,6 +19,7 @@ import {
 import { listarCentrosAprobados, listarRescates } from "@/lib/db";
 import type { Centro, GeoPunto, Rescate } from "@/lib/types";
 import { Badge, cx } from "@/components/ui";
+import Footer from "@/components/Footer";
 
 const MapView = dynamic(() => import("@/components/MapView"), {
   ssr: false,
@@ -224,6 +225,8 @@ export default function HomePage() {
           <Plus className="size-6" />
         </span>
       </Link>
+
+      <Footer />
     </div>
   );
 }

@@ -44,7 +44,7 @@
   --sec-medicos: #7c6cf0;
   --sec-rescate: #f15b5b;
   --sec-prevencion: #fbb13c;
-  --sec-manual: #8b86b0;
+  --sec-manual: #e09f16; /* Color mostaza llamativo */
 
   /* Sombras CLAY */
   --clay-dark: rgba(140, 116, 165, 0.30);
@@ -145,7 +145,7 @@
     --info-soft: #1f2547;
 
     --sec-medicos: #a399f5;
-    --sec-manual: #a8a2cc;
+    --sec-manual: #f5b42f; /* Color mostaza oscuro */
 
     --clay-dark: rgba(0, 0, 0, 0.45);
     --clay-light: rgba(255, 255, 255, 0.05);

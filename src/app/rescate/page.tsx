@@ -34,6 +34,8 @@ export default function RescatePage() {
   const [items, setItems] = useState<Rescate[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   async function recargar() {
     setItems(await listarRescates());
@@ -43,7 +45,13 @@ export default function RescatePage() {
     recargar();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage]);
+
   const pendientes = items.filter((r) => !r.resuelto).length;
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const paginatedItems = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="px-4 pb-10 pt-4">
@@ -85,44 +93,82 @@ export default function RescatePage() {
           <EmptyState icon={<LifeBuoy className="size-8" />} titulo="Sin reportes" detalle="No hay solicitudes de rescate." />
         </div>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {items.map((r) => (
-            <Card key={r.id} className={r.resuelto ? "p-4 opacity-70" : "p-4"}>
-              <div className="flex items-start justify-between gap-2">
-                <p className="flex items-center gap-1.5 font-medium">
-                  <MapPin className="size-4 shrink-0 text-danger" /> {r.direccion}
-                </p>
-                <Badge tono={r.resuelto ? "success" : "danger"}>
-                  {r.resuelto ? "Resuelto" : "Activo"}
-                </Badge>
-              </div>
-              {r.detalle && <p className="mt-1.5 text-sm text-muted">{r.detalle}</p>}
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
-                {typeof r.personasAtrapadas === "number" && (
-                  <span className="inline-flex items-center gap-1">
-                    <Users className="size-4" /> {r.personasAtrapadas} persona(s)
-                  </span>
-                )}
-                <span>Reporta: {r.representante}</span>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <a href={`tel:${r.telefono}`} className="flex-1">
-                  <Button full variant="secondary" size="sm">
-                    <Phone className="size-4" /> {r.telefono}
+        <>
+          <ul className="mt-3 space-y-3">
+            {paginatedItems.map((r) => (
+              <Card key={r.id} className={r.resuelto ? "p-4 opacity-70" : "p-4"}>
+                <div className="flex items-start justify-between gap-2">
+                  <p className="flex items-center gap-1.5 font-medium">
+                    <MapPin className="size-4 shrink-0 text-danger" /> {r.direccion}
+                  </p>
+                  <Badge tono={r.resuelto ? "success" : "danger"}>
+                    {r.resuelto ? "Resuelto" : "Activo"}
+                  </Badge>
+                </div>
+                {r.detalle && <p className="mt-1.5 text-sm text-muted">{r.detalle}</p>}
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
+                  {typeof r.personasAtrapadas === "number" && (
+                    <span className="inline-flex items-center gap-1">
+                      <Users className="size-4" /> {r.personasAtrapadas} persona(s)
+                    </span>
+                  )}
+                  <span>Reporta: {r.representante}</span>
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <a href={`tel:${r.telefono}`} className="flex-1">
+                    <Button full variant="secondary" size="sm">
+                      <Phone className="size-4" /> {r.telefono}
+                    </Button>
+                  </a>
+                  <Button
+                    size="sm"
+                    variant={r.resuelto ? "ghost" : "primary"}
+                    onClick={() => marcarRescateResuelto(r.id, !r.resuelto).then(recargar)}
+                  >
+                    <CheckCircle2 className="size-4" />
+                    {r.resuelto ? "Reabrir" : "Marcar resuelto"}
                   </Button>
-                </a>
-                <Button
-                  size="sm"
-                  variant={r.resuelto ? "ghost" : "primary"}
-                  onClick={() => marcarRescateResuelto(r.id, !r.resuelto).then(recargar)}
+                </div>
+              </Card>
+            ))}
+          </ul>
+          
+          {items.length > 0 && (
+            <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border/10 pt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted">Mostrar:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="rounded-lg bg-surface px-2 py-1.5 text-sm font-medium text-foreground clay-inset focus:outline-none focus:ring-2 focus:ring-primary/45"
                 >
-                  <CheckCircle2 className="size-4" />
-                  {r.resuelto ? "Reabrir" : "Marcar resuelto"}
-                </Button>
+                  <option value={15}>15 por página</option>
+                  <option value={25}>25 por página</option>
+                  <option value={50}>50 por página</option>
+                </select>
               </div>
-            </Card>
-          ))}
-        </ul>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
+                >
+                  Anterior
+                </button>
+                <span className="text-sm font-medium text-muted min-w-[80px] text-center">
+                  {currentPage} / {totalPages > 0 ? totalPages : 1}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

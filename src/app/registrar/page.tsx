@@ -35,6 +35,46 @@ const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 const SUG_NECESITA = ["Agua potable", "Pañales", "Medicamentos", "Alimentos no perecederos", "Colchonetas", "Insulina"];
 const SUG_SOBRA = ["Ropa", "Frazadas", "Útiles de aseo", "Agua", "Enlatados"];
 
+function extraerCoordenadasDeGoogleMaps(url: string): { lat: number; lng: number } | null {
+  // Regex 1: Busca patrones como @10.5061,-66.9036
+  const regex1 = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const match1 = url.match(regex1);
+  if (match1) {
+    const lat = parseFloat(match1[1]);
+    const lng = parseFloat(match1[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  // Regex 2: Busca patrones como query=10.5061,-66.9036 o ll=10.5061,-66.9036 o q=10.5061,-66.9036
+  const regex2 = /[?&](?:q|query|ll)=(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const match2 = url.match(regex2);
+  if (match2) {
+    const lat = parseFloat(match2[1]);
+    const lng = parseFloat(match2[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  // Regex 3: Enlaces antiguos de maps o urls embebidas: sll=10.5061,-66.9036
+  const regex3 = /sll=(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const match3 = url.match(regex3);
+  if (match3) {
+    const lat = parseFloat(match3[1]);
+    const lng = parseFloat(match3[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  // Regex 4: Busca patrones como search/10.5061,-66.9036 o place/10.5061,-66.9036
+  const regex4 = /\/(?:search|place)\/(-?\d+\.\d+),(-?\d+\.\d+)/;
+  const match4 = url.match(regex4);
+  if (match4) {
+    const lat = parseFloat(match4[1]);
+    const lng = parseFloat(match4[2]);
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+
+  return null;
+}
+
 export default function RegistrarPage() {
   const { usuario, iniciarSesion } = useAuth();
   const [fotos, setFotos] = useState<string[]>([]);
@@ -58,6 +98,49 @@ export default function RegistrarPage() {
   const [enviando, setEnviando] = useState(false);
   const [listo, setListo] = useState(false);
   const [procesandoFoto, setProcesandoFoto] = useState(false);
+
+  // Estados para importar desde Google Maps
+  const [linkMapas, setLinkMapas] = useState("");
+  const [buscandoLink, setBuscandoLink] = useState(false);
+  const [errorLink, setErrorLink] = useState("");
+
+  const procesarLinkMapas = async (url: string) => {
+    setErrorLink("");
+    if (!url.trim()) return;
+
+    // 1. Intentamos parsear directamente en el cliente (si es link largo)
+    const coordenadas = extraerCoordenadasDeGoogleMaps(url);
+    if (coordenadas) {
+      setPunto(coordenadas);
+      setLinkMapas("");
+      return;
+    }
+
+    // 2. Si es un link corto, lo resolvemos a través de la API
+    if (url.includes("goo.gl") || url.includes("maps.app") || url.includes("maps.google") || url.includes("google.com/maps")) {
+      setBuscandoLink(true);
+      try {
+        const res = await fetch(`/api/resolve-map?url=${encodeURIComponent(url.trim())}`);
+        const data = await res.json();
+        if (data.resolvedUrl) {
+          const coords = extraerCoordenadasDeGoogleMaps(data.resolvedUrl);
+          if (coords) {
+            setPunto(coords);
+            setLinkMapas("");
+            return;
+          }
+        }
+        setErrorLink("No pudimos extraer las coordenadas de este enlace. Intenta tocar el mapa.");
+      } catch (err) {
+        console.error(err);
+        setErrorLink("Error al procesar el enlace. Intenta tocar el mapa.");
+      } finally {
+        setBuscandoLink(false);
+      }
+    } else {
+      setErrorLink("Enlace no válido. Asegúrate de copiar un enlace de Google Maps.");
+    }
+  };
 
   // Pre-rellenar el nombre del registrador con el nombre del usuario de Google
   useEffect(() => {
@@ -136,6 +219,7 @@ export default function RegistrarPage() {
         descripcion: descripcion.trim() || undefined,
         registradorNombre: regNombre.trim() || undefined,
         registradorContacto: regContacto.trim() || undefined,
+        creadorUid: usuario?.uid,
         registradorUid: usuario?.uid,
         registradorEmail: usuario?.email,
         estado: "pendiente",
@@ -192,6 +276,8 @@ export default function RegistrarPage() {
               setDescripcion("");
               setRegNombre(usuario?.nombre || "");
               setRegContacto("");
+              setLinkMapas("");
+              setErrorLink("");
             }}
           >
             Registrar otro
@@ -207,7 +293,7 @@ export default function RegistrarPage() {
         <EmptyState
           icon={<Building2 className="size-12 text-primary" />}
           titulo="Inicio de sesión requerido"
-          detalle="Debes iniciar sesión con tu cuenta de Google para poder registrar un nuevo centro de acopio."
+          detalle="Para registrar un centro de acopio y poder administrar sus necesidades más adelante, debes iniciar sesión con tu cuenta."
           accion={
             <Button onClick={iniciarSesion}>
               <LogIn className="size-5" /> Iniciar sesión con Google
@@ -331,7 +417,35 @@ export default function RegistrarPage() {
         </section>
 
         {/* Ubicación en mapa */}
-        <section>
+        <section className="space-y-4">
+          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted">
+            Ubicación
+          </h2>
+
+          <Field label="Importar ubicación desde Google Maps (opcional)" hint="Pega el enlace de Google Maps (largo o corto) para ubicar el centro automáticamente.">
+            <div className="flex gap-2">
+              <Input
+                value={linkMapas}
+                onChange={(e) => setLinkMapas(e.target.value)}
+                placeholder="https://maps.app.goo.gl/... o https://google.com/maps/..."
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                onClick={() => procesarLinkMapas(linkMapas)}
+                cargando={buscandoLink}
+              >
+                Importar
+              </Button>
+            </div>
+            {errorLink && (
+              <span className="mt-1 block text-xs font-medium text-danger" role="alert">
+                {errorLink}
+              </span>
+            )}
+          </Field>
+
           <Field label="Ubicación en el mapa" required hint="Toca el mapa para colocar el marcador si el centro está en otro lugar, o usa tu ubicación actual." error={errores.punto}>
             <div className="overflow-hidden rounded-2xl border border-border">
               <div className="h-64">

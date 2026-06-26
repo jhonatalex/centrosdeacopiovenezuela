@@ -14,14 +14,22 @@ import {
   LogIn,
   Edit,
   Save,
+  UserCheck,
   Camera,
   Loader2,
   MessageSquare,
 } from "lucide-react";
-import { listarCentros, moderarCentro, actualizarCentro, listarUsuarios, subirFoto } from "@/lib/db";
+import {
+  listarCentros,
+  moderarCentro,
+  actualizarCentro,
+  listarUsuarios, subirFoto,
+  listarSolicitudesResponsabilidad,
+  responderSolicitudResponsabilidad,
+} from "@/lib/db";
 import { fileADataUrl } from "@/lib/img";
 import { useAuth } from "@/lib/auth";
-import type { Centro, EstadoModeracion, Usuario } from "@/lib/types";
+import type { Centro, EstadoModeracion, Usuario, SolicitudResponsabilidad } from "@/lib/types";
 import {
   Badge,
   Button,
@@ -46,8 +54,9 @@ export default function AdminPage() {
   const { usuario, cargando: authCargando, iniciarSesion } = useAuth();
   const [centros, setCentros] = useState<Centro[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [solicitudes, setSolicitudes] = useState<SolicitudResponsabilidad[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [filtro, setFiltro] = useState<EstadoModeracion | "usuarios">("pendiente");
+  const [filtro, setFiltro] = useState<EstadoModeracion | "usuarios" | "solicitudes">("pendiente");
   const [procesando, setProcesando] = useState<string | null>(null);
 
   // Estados para el editor
@@ -71,6 +80,7 @@ export default function AdminPage() {
   async function recargar() {
     setCentros(await listarCentros());
     setUsuarios(await listarUsuarios());
+    setSolicitudes(await listarSolicitudesResponsabilidad());
     setCargando(false);
   }
   useEffect(() => {
@@ -85,6 +95,16 @@ export default function AdminPage() {
     setProcesando(id);
     try {
       await moderarCentro(id, estado, motivo);
+      await recargar();
+    } finally {
+      setProcesando(null);
+    }
+  }
+
+  async function responderSolicitud(id: string, estado: "aceptada" | "rechazada") {
+    setProcesando(id);
+    try {
+      await responderSolicitudResponsabilidad(id, estado);
       await recargar();
     } finally {
       setProcesando(null);
@@ -252,6 +272,17 @@ export default function AdminPage() {
         >
           Usuarios <span className="opacity-70">({usuarios.length})</span>
         </button>
+        <button
+          onClick={() => setFiltro("solicitudes")}
+          className={cx(
+            "rounded-full px-3.5 py-2 text-sm font-medium transition-colors",
+            filtro === "solicitudes"
+              ? "bg-foreground text-background"
+              : "bg-surface-2 text-muted hover:text-foreground",
+          )}
+        >
+          Solicitudes <span className="opacity-70">({solicitudes.length})</span>
+        </button>
       </div>
 
       {cargando ? (
@@ -317,8 +348,8 @@ export default function AdminPage() {
                                   c.estado === "aprobado"
                                     ? "success"
                                     : c.estado === "pendiente"
-                                    ? "warning"
-                                    : "danger"
+                                      ? "warning"
+                                      : "danger"
                                 }
                                 className="text-[9px] font-bold px-2 py-0.5 capitalize"
                               >
@@ -339,6 +370,83 @@ export default function AdminPage() {
                 </Card>
               );
             })}
+          </ul>
+        )
+      ) : filtro === "solicitudes" ? (
+        solicitudes.length === 0 ? (
+          <div className="mt-6">
+            <EmptyState
+              titulo="No hay solicitudes"
+              detalle="No se han registrado solicitudes de responsabilidad en el sistema."
+            />
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-4">
+            {solicitudes.map((s) => (
+              <Card key={s.id} className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <p className="font-display font-bold text-foreground text-sm sm:text-base">
+                        {s.solicitanteNombre}
+                      </p>
+                      <Badge
+                        tono={
+                          s.estado === "aceptada"
+                            ? "success"
+                            : s.estado === "pendiente"
+                              ? "warning"
+                              : "danger"
+                        }
+                        className="text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider"
+                      >
+                        {s.estado}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted mb-2">{s.solicitanteEmail}</p>
+
+                    <div className="space-y-1 text-xs">
+                      <p className="flex items-center gap-1.5 text-muted">
+                        <Phone className="size-3.5" />
+                        <span className="font-semibold">Teléfono:</span> {s.solicitanteContacto}
+                      </p>
+                      <p className="flex items-center gap-1.5 text-muted">
+                        <Building2 className="size-3.5" />
+                        <span className="font-semibold">Centro solicitado:</span>{" "}
+                        <Link href={`/centro?id=${s.centroId}`} className="text-primary hover:underline font-semibold">
+                          {s.centroNombre}
+                        </Link>
+                      </p>
+                      <p className="flex items-center gap-1.5 text-muted">
+                        <Clock className="size-3.5" />
+                        <span className="font-semibold">Fecha:</span>{" "}
+                        {new Date(s.creadoEn).toLocaleString("es-VE")}
+                      </p>
+                    </div>
+                  </div>
+
+                  {s.estado === "pendiente" && (
+                    <div className="flex sm:flex-col gap-2 shrink-0 justify-end sm:justify-start">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        cargando={procesando === s.id}
+                        onClick={() => responderSolicitud(s.id, "rechazada")}
+                      >
+                        <X className="size-3.5 text-danger" /> Rechazar
+                      </Button>
+                      <Button
+                        size="sm"
+                        cargando={procesando === s.id}
+                        onClick={() => responderSolicitud(s.id, "aceptada")}
+                      >
+                        <Check className="size-3.5" /> Aceptar y Asignar
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
           </ul>
         )
       ) : lista.length === 0 ? (
@@ -432,7 +540,7 @@ export default function AdminPage() {
                     Ver en público →
                   </Link>
                 )}
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -526,9 +634,8 @@ export default function AdminPage() {
                   ))}
                   {editFotos.length < 3 && (
                     <label
-                      className={`grid size-24 cursor-pointer place-items-center rounded-xl border-2 border-dashed border-border text-muted transition-colors hover:border-primary hover:text-primary ${
-                        procesandoFoto ? "pointer-events-none opacity-60" : ""
-                      }`}
+                      className={`grid size-24 cursor-pointer place-items-center rounded-xl border-2 border-dashed border-border text-muted transition-colors hover:border-primary hover:text-primary ${procesandoFoto ? "pointer-events-none opacity-60" : ""
+                        }`}
                     >
                       {procesandoFoto ? (
                         <Loader2 className="size-6 animate-spin" />

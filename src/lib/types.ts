@@ -23,9 +23,10 @@ export interface Centro {
   necesita: string[]; // lo que se necesita con urgencia
   sobra: string[]; // lo que se puede compartir / donar
   descripcion?: string;
-  // Registrador (privado, sólo visible para admin)
+  // Registrador (privado, sólo visible para admin, o creadorUid para el dueño)
   registradorNombre?: string;
   registradorContacto?: string;
+  creadorUid?: string; // UID del usuario que registró el centro
   registradorUid?: string;
   registradorEmail?: string;
   // Moderación
@@ -57,9 +58,26 @@ export interface RegistroMedico {
   cedula?: string; // identidad básica (opcional)
   patologia: string; // enfermedad
   tratamiento: string; // qué tratamiento usa
+  posologia?: string; // cada cuánto lo toma
+  tratamientosAdicionales?: {
+    patologia: string;
+    tratamiento: string;
+    posologia?: string;
+  }[];
+  condicionesMedicas?: {
+    patologia: string;
+    medicamentos: {
+      nombre: string;
+      posologia?: string;
+    }[];
+  }[];
   ciudad: string;
+  municipio?: string;
+  parroquia?: string;
+  direccion?: string;
   telefono: string;
   creadoEn: number;
+  creadorEmail?: string;
 }
 
 /** Banco de medicamentos para donar */
@@ -69,9 +87,13 @@ export interface Medicamento {
   presentacion?: string; // ej. "500mg comprimidos"
   cantidad: number; // contador disponible
   ciudad: string;
+  municipio?: string;
+  parroquia?: string;
+  direccion?: string;
   ubicacionTexto: string; // dónde retirarlo
   contacto: string;
   creadoEn: number;
+  creadorEmail?: string;
 }
 
 /** Solicitud de rescate */
@@ -103,6 +125,18 @@ export interface Usuario {
   email: string;
   foto?: string;
   esAdmin: boolean;
+}
+
+export interface SolicitudResponsabilidad {
+  id: string;
+  centroId: string;
+  centroNombre: string;
+  solicitanteUid: string;
+  solicitanteNombre: string;
+  solicitanteEmail: string;
+  solicitanteContacto: string;
+  creadoEn: number;
+  estado: "pendiente" | "aceptada" | "rechazada";
 }
 
 /** Credenciales de WhaiBot para envío de mensajes vía API */

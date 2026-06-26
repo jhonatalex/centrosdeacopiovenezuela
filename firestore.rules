@@ -15,8 +15,9 @@ service cloud.firestore {
       allow read: if resource.data.estado == 'aprobado' || esAdmin();
       // Cualquiera puede crear un centro (queda 'pendiente').
       allow create: if request.resource.data.estado == 'pendiente';
-      // Solo un admin puede moderar.
-      allow update, delete: if esAdmin();
+      // Solo un admin puede borrar. Admin o el creador pueden actualizar.
+      allow update: if esAdmin() || (request.auth != null && request.auth.uid == resource.data.creadorUid);
+      allow delete: if esAdmin();
     }
 
     // Reseñas: lectura pública; crear requiere sesión y ser el autor.

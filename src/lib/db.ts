@@ -16,6 +16,7 @@ import type {
   Rescate,
   Baliza,
   Usuario,
+  SolicitudResponsabilidad,
   WhaibotConfig,
   WhaibotPlantilla,
 } from "./types";
@@ -64,16 +65,35 @@ async function fsAll<T>(col: string): Promise<T[]> {
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as object) })) as T[];
 }
 
+function limpiarUndefined(obj: any): any {
+  if (obj === null || typeof obj !== "object") return obj;
+  if (Array.isArray(obj)) return obj.map(limpiarUndefined);
+  const clean: any = {};
+  Object.keys(obj).forEach((key) => {
+    const val = obj[key];
+    if (val !== undefined) {
+      clean[key] = limpiarUndefined(val);
+    }
+  });
+  return clean;
+}
+
 async function fsSet(col: string, id: string, data: object) {
   const { db } = getFirebase();
   const { doc, setDoc } = await import("firebase/firestore");
-  await setDoc(doc(db!, col, id), data, { merge: true });
+  await setDoc(doc(db!, col, id), limpiarUndefined(data), { merge: true });
 }
 
 async function fsUpdate(col: string, id: string, data: object) {
   const { db } = getFirebase();
   const { doc, updateDoc } = await import("firebase/firestore");
-  await updateDoc(doc(db!, col, id), data);
+  await updateDoc(doc(db!, col, id), limpiarUndefined(data));
+}
+
+async function fsDelete(col: string, id: string) {
+  const { db } = getFirebase();
+  const { doc, deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(db!, col, id));
 }
 
 /* ----------------------------- Subida de imágenes ----------------------------- */
@@ -127,6 +147,18 @@ export async function moderarCentro(
     return;
   }
   await fsUpdate("centros", id, { estado, motivoRechazo: motivoRechazo ?? "" });
+}
+
+export async function actualizarNecesidadesCentro(id: string, necesita: string[], sobra: string[]): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Centro>("centros", centrosSeed);
+    lsSet(
+      "centros",
+      all.map((c) => (c.id === id ? { ...c, necesita, sobra } : c)),
+    );
+    return;
+  }
+  await fsUpdate("centros", id, { necesita, sobra });
 }
 
 export async function actualizarCentro(c: Centro): Promise<void> {
@@ -193,6 +225,15 @@ export async function crearRegistroMedico(r: RegistroMedico): Promise<void> {
   await fsSet("medicos", r.id, r as unknown as object);
 }
 
+export async function eliminarRegistroMedico(id: string): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    lsSet("medicos", all.filter(m => m.id !== id));
+    return;
+  }
+  await fsDelete("medicos", id);
+}
+
 /* =============================== MEDICAMENTOS =============================== */
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
@@ -209,6 +250,15 @@ export async function crearMedicamento(m: Medicamento): Promise<void> {
     return;
   }
   await fsSet("medicamentos", m.id, m as unknown as object);
+}
+
+export async function eliminarMedicamento(id: string): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Medicamento>("medicamentos", medicamentosSeed);
+    lsSet("medicamentos", all.filter(m => m.id !== id));
+    return;
+  }
+  await fsDelete("medicamentos", id);
 }
 
 export async function ajustarCantidadMedicamento(id: string, delta: number): Promise<void> {
@@ -284,6 +334,75 @@ export async function guardarUsuario(u: Usuario): Promise<void> {
 export async function listarUsuarios(): Promise<Usuario[]> {
   const all = esDemo ? lsGet<Usuario>("usuarios", []) : await fsAll<Usuario>("usuarios");
   return all.sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+
+/* =============================== SOLICITUDES DE RESPONSABILIDAD =============================== */
+
+export async function crearSolicitudResponsabilidad(s: SolicitudResponsabilidad): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<SolicitudResponsabilidad>("solicitudes_resp", []);
+    lsSet("solicitudes_resp", [s, ...all]);
+    return;
+  }
+  await fsSet("solicitudes_resp", s.id, s as unknown as object);
+}
+
+export async function listarSolicitudesResponsabilidad(): Promise<SolicitudResponsabilidad[]> {
+  const all = esDemo
+    ? lsGet<SolicitudResponsabilidad>("solicitudes_resp", [])
+    : await fsAll<SolicitudResponsabilidad>("solicitudes_resp");
+  return all.sort((a, b) => b.creadoEn - a.creadoEn);
+}
+
+export async function responderSolicitudResponsabilidad(
+  id: string,
+  estado: "aceptada" | "rechazada"
+): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<SolicitudResponsabilidad>("solicitudes_resp", []);
+    const solicitud = all.find((s) => s.id === id);
+    if (!solicitud) return;
+
+    // 1. Actualizar el estado de la solicitud
+    const list = all.map((s) => (s.id === id ? { ...s, estado } : s));
+    lsSet("solicitudes_resp", list);
+
+    // 2. Si es aceptada, actualizar el registrador del centro
+    if (estado === "aceptada") {
+      const centros = lsGet<Centro>("centros", centrosSeed);
+      lsSet(
+        "centros",
+        centros.map((c) =>
+          c.id === solicitud.centroId
+            ? {
+              ...c,
+              registradorUid: solicitud.solicitanteUid,
+              registradorEmail: solicitud.solicitanteEmail,
+              registradorNombre: solicitud.solicitanteNombre,
+              registradorContacto: solicitud.solicitanteContacto,
+            }
+            : c
+        )
+      );
+    }
+    return;
+  }
+
+  // En Firebase
+  await fsUpdate("solicitudes_resp", id, { estado });
+
+  if (estado === "aceptada") {
+    const all = await fsAll<SolicitudResponsabilidad>("solicitudes_resp");
+    const solicitud = all.find((s) => s.id === id);
+    if (solicitud) {
+      await fsUpdate("centros", solicitud.centroId, {
+        registradorUid: solicitud.solicitanteUid,
+        registradorEmail: solicitud.solicitanteEmail,
+        registradorNombre: solicitud.solicitanteNombre,
+        registradorContacto: solicitud.solicitanteContacto,
+      });
+    }
+  }
 }
 
 /* =============================== WHAIBOT =============================== */

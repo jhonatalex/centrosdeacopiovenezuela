@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     siteName: "Centros de Acopio Venezuela",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://centrosdeacopiovenezuela.com/og-image.png",
         width: 1024,
         height: 1024,
         alt: "Centros de Acopio Venezuela",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     title: "Centros de Acopio · Ayuda en Emergencias Venezuela",
     description:
       "Plataforma comunitaria para ubicar y registrar centros de acopio, puntos de ayuda, personal de rescate, atención médica y prevención sísmica en Venezuela.",
-    images: ["/og-image.png"],
+    images: ["https://centrosdeacopiovenezuela.com/og-image.png"],
   },
   robots: {
     index: true,
