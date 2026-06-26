@@ -147,6 +147,18 @@ export async function moderarCentro(
   await fsUpdate("centros", id, { estado, motivoRechazo: motivoRechazo ?? "" });
 }
 
+export async function actualizarNecesidadesCentro(id: string, necesita: string[], sobra: string[]): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<Centro>("centros", centrosSeed);
+    lsSet(
+      "centros",
+      all.map((c) => (c.id === id ? { ...c, necesita, sobra } : c)),
+    );
+    return;
+  }
+  await fsUpdate("centros", id, { necesita, sobra });
+}
+
 export async function actualizarCentro(c: Centro): Promise<void> {
   if (esDemo) {
     const all = lsGet<Centro>("centros", centrosSeed);

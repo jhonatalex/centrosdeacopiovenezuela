@@ -23,9 +23,10 @@ export interface Centro {
   necesita: string[]; // lo que se necesita con urgencia
   sobra: string[]; // lo que se puede compartir / donar
   descripcion?: string;
-  // Registrador (privado, sólo visible para admin)
+  // Registrador (privado, sólo visible para admin, o creadorUid para el dueño)
   registradorNombre?: string;
   registradorContacto?: string;
+  creadorUid?: string; // UID del usuario que registró el centro
   registradorUid?: string;
   registradorEmail?: string;
   // Moderación

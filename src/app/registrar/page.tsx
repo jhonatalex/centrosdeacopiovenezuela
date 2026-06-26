@@ -219,6 +219,7 @@ export default function RegistrarPage() {
         descripcion: descripcion.trim() || undefined,
         registradorNombre: regNombre.trim() || undefined,
         registradorContacto: regContacto.trim() || undefined,
+        creadorUid: usuario?.uid,
         registradorUid: usuario?.uid,
         registradorEmail: usuario?.email,
         estado: "pendiente",
@@ -292,7 +293,7 @@ export default function RegistrarPage() {
         <EmptyState
           icon={<Building2 className="size-12 text-primary" />}
           titulo="Inicio de sesión requerido"
-          detalle="Debes iniciar sesión con tu cuenta de Google para poder registrar un nuevo centro de acopio."
+          detalle="Para registrar un centro de acopio y poder administrar sus necesidades más adelante, debes iniciar sesión con tu cuenta."
           accion={
             <Button onClick={iniciarSesion}>
               <LogIn className="size-5" /> Iniciar sesión con Google

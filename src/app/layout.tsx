@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import DemoBanner from "@/components/DemoBanner";
+import Footer from "@/components/Footer";
 
 const nunito = Nunito({
   variable: "--font-nunito",
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <DemoBanner />
           <main className="relative mx-auto flex w-full max-w-2xl min-h-0 flex-1 flex-col overflow-y-auto">
             {children}
+            <Footer />
           </main>
           <BottomNav />
         </AuthProvider>

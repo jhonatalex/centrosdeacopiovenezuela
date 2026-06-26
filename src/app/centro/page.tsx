@@ -13,8 +13,9 @@ import {
   MessageSquarePlus,
   Loader2,
   LogIn,
-  Edit,
+  Pencil,
   Save,
+  Edit,
   UserCheck,
   X,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import {
   listarReviews,
   crearReview,
   nuevoId,
+  actualizarNecesidadesCentro,
   actualizarCentro,
   crearSolicitudResponsabilidad,
 } from "@/lib/db";
@@ -33,7 +35,6 @@ import {
   Button,
   Card,
   Spinner,
-  StarRating,
   Textarea,
   EmptyState,
   Input,
@@ -51,6 +52,11 @@ function Detalle() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [cargando, setCargando] = useState(true);
   const [fotoActiva, setFotoActiva] = useState(0);
+
+  const [editandoSuministros, setEditandoSuministros] = useState(false);
+  const [editNecesitaSuministros, setEditNecesitaSuministros] = useState<string[]>([]);
+  const [editSobraSuministros, setEditSobraSuministros] = useState<string[]>([]);
+  const [guardandoSuministros, setGuardandoSuministros] = useState(false);
 
   const [rating, setRating] = useState(5);
   const [texto, setTexto] = useState("");
@@ -78,7 +84,11 @@ function Detalle() {
   async function recargar() {
     const c = await obtenerCentro(id);
     setCentro(c);
-    if (c) setReviews(await listarReviews(c.id));
+    if (c) {
+      setReviews(await listarReviews(c.id));
+      setEditNecesitaSuministros(c.necesita);
+      setEditSobraSuministros(c.sobra);
+    }
     setCargando(false);
   }
 
@@ -106,6 +116,18 @@ function Detalle() {
       await recargar();
     } finally {
       setEnviando(false);
+    }
+  }
+
+  async function guardarEdicionSuministros() {
+    if (!centro) return;
+    setGuardandoSuministros(true);
+    try {
+      await actualizarNecesidadesCentro(centro.id, editNecesitaSuministros, editSobraSuministros);
+      await recargar();
+      setEditandoSuministros(false);
+    } finally {
+      setGuardandoSuministros(false);
     }
   }
 
@@ -288,28 +310,84 @@ function Detalle() {
         <br />
         <br />
 
-        {(centro.necesita.length > 0 || centro.sobra.length > 0) && (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {centro.necesita.length > 0 && (
-              <Card className="p-4">
-                <p className="mb-2 text-sm font-semibold text-danger">Necesita con urgencia</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {centro.necesita.map((n) => (
-                    <Badge key={n} tono="danger">{n}</Badge>
-                  ))}
+        {(centro.necesita.length > 0 || centro.sobra.length > 0 || editandoSuministros) && (
+          <div className="grid gap-3 sm:grid-cols-2 relative">
+            {!editandoSuministros && usuario?.uid === centro.creadorUid && (
+              <div className="absolute -top-10 right-0">
+                <Button size="sm" variant="secondary" onClick={() => setEditandoSuministros(true)}>
+                  <Pencil className="size-4" /> Editar suministros
+                </Button>
+              </div>
+            )}
+            
+            {editandoSuministros ? (
+              <Card className="col-span-1 sm:col-span-2 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display font-bold">Editar suministros</h3>
+                  <button onClick={() => setEditandoSuministros(false)} className="text-muted hover:text-foreground">
+                    <X className="size-5" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-danger">Necesita con urgencia</label>
+                    <ChipInput
+                      valores={editNecesitaSuministros}
+                      onChange={setEditNecesitaSuministros}
+                      tono="danger"
+                      placeholder="Ej. agua potable"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-success">Puede compartir / dona</label>
+                    <ChipInput
+                      valores={editSobraSuministros}
+                      onChange={setEditSobraSuministros}
+                      tono="success"
+                      placeholder="Ej. frazadas"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="secondary" onClick={() => setEditandoSuministros(false)}>Cancelar</Button>
+                    <Button onClick={guardarEdicionSuministros} cargando={guardandoSuministros}>
+                      <Save className="size-4 mr-1" /> Guardar cambios
+                    </Button>
+                  </div>
                 </div>
               </Card>
+            ) : (
+              <>
+                {centro.necesita.length > 0 && (
+                  <Card className="p-4">
+                    <p className="mb-2 text-sm font-semibold text-danger">Necesita con urgencia</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {centro.necesita.map((n) => (
+                        <Badge key={n} tono="danger">{n}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+                {centro.sobra.length > 0 && (
+                  <Card className="p-4">
+                    <p className="mb-2 text-sm font-semibold text-success">Puede compartir / dona</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {centro.sobra.map((s) => (
+                        <Badge key={s} tono="success">{s}</Badge>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+              </>
             )}
-            {centro.sobra.length > 0 && (
-              <Card className="p-4">
-                <p className="mb-2 text-sm font-semibold text-success">Puede compartir / dona</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {centro.sobra.map((s) => (
-                    <Badge key={s} tono="success">{s}</Badge>
-                  ))}
-                </div>
-              </Card>
-            )}
+          </div>
+        )}
+
+        {/* Edit button if empty (only if creator) */}
+        {!editandoSuministros && centro.necesita.length === 0 && centro.sobra.length === 0 && usuario?.uid === centro.creadorUid && (
+          <div className="flex justify-center">
+            <Button size="sm" variant="secondary" onClick={() => setEditandoSuministros(true)}>
+              <Pencil className="size-4" /> Añadir suministros
+            </Button>
           </div>
         )}
 
