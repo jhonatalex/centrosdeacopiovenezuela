@@ -180,12 +180,15 @@ function BancoMedicamentos() {
         <p className="text-xs text-muted">
           {filtrados.length} resultado(s) · {total} unidades disponibles
         </p>
-        <Button size="sm" variant="outline" onClick={() => {
-          if (!usuario) return iniciarSesion();
-          setMostrarForm((v) => !v);
-        }}>
-          <Plus className="size-4" /> Donar medicamento
-        </Button>
+        <button
+          onClick={() => {
+            if (!usuario) return iniciarSesion();
+            setMostrarForm((v) => !v);
+          }}
+          className="inline-flex h-11 items-center justify-center gap-1 rounded-full bg-accent px-5 text-[15px] font-bold text-accent-soft shadow-lg clay-btn transition-transform active:scale-95 hover:scale-105"
+        >
+          <Plus className="size-[18px]" strokeWidth={2.5} /> Donar
+        </button>
       </div>
 
       {mostrarForm && usuario && <FormMedicamento creadorEmail={usuario.email} onCreado={() => { setMostrarForm(false); recargar(); }} />}
