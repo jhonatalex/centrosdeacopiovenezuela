@@ -10,7 +10,7 @@ export default function Footer() {
         <p className="text-sm text-foreground font-medium mb-2">
           ¿Quiénes somos?{" "}
           <a
-            href="https://www.globaltechfactory.com/"
+            href="https://globaltechnologies.web.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"

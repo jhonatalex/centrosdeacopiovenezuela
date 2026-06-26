@@ -60,6 +60,7 @@ const grietasSeguras = [
   "Pequeñas fisuras en esquinas de puertas o ventanas.",
   "Superficiales en la pintura, sin profundidad.",
   "En tabiques que no sostienen el techo.",
+  "Por contracción del friso o concreto nuevo.",
 ];
 
 function Grietas() {
