@@ -482,7 +482,7 @@ export default function WhaibotPage() {
                   {resultado && (
                     resultado.ok
                       ? <CheckCircle2 className="size-4 text-success shrink-0" />
-                      : <AlertCircle className="size-4 text-danger shrink-0" title={resultado.msg} />
+                      : <span title={resultado.msg} className="shrink-0"><AlertCircle className="size-4 text-danger" /></span>
                   )}
                   {!resultado && enviando && seleccionado && (
                     <Loader2 className="size-4 animate-spin text-muted shrink-0" />
