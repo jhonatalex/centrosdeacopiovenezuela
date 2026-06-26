@@ -7,27 +7,7 @@ export default function Footer() {
   return (
     <footer className="mt-8 mb-20 px-4 text-center">
       <div className="rounded-[1.5rem] bg-surface p-6 clay-sm">
-        <p className="text-sm text-foreground font-medium mb-2">
-          ¿Quiénes somos?{" "}
-          <a
-            href="https://globaltechnologies.web.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            Global Tech
-          </a>
-        </p>
-        <p className="text-xs text-muted mb-1">
-          © 2026 Global Tech. Todos los derechos reservados.
-        </p>
-        <p className="text-xs text-muted mb-2">
-          <a href="https://globaltechnologies.web.app" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
-            globaltechnologies.web.app
-          </a>
-        </p>
-
-        <div className="flex flex-col items-center justify-center gap-2 border-t border-border/10 pt-2 mt-1">
+        <div className="flex flex-col items-center justify-center gap-2">
           <p className="text-sm font-medium text-foreground">
             ¿Encontraste un problema? Repórtalo aquí:
           </p>
