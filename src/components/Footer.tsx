@@ -19,7 +19,12 @@ export default function Footer() {
           </a>
         </p>
         <p className="text-xs text-muted mb-1">
-          © 2025 Global Tech. Todos los derechos reservados.
+          © 2026 Global Tech. Todos los derechos reservados.
+        </p>
+        <p className="text-xs text-muted mb-2">
+          <a href="https://globaltechnologies.web.app" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+            globaltechnologies.web.app
+          </a>
         </p>
 
         <div className="flex flex-col items-center justify-center gap-2 border-t border-border/10 pt-2 mt-1">
