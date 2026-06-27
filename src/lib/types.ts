@@ -76,6 +76,16 @@ export interface RegistroMedico {
   parroquia?: string;
   direccion?: string;
   telefono: string;
+  // Hospitalización (formulario inteligente): si está hospitalizado se captura el
+  // centro de salud; si no, la dirección. Permite separar informes.
+  hospitalizado?: boolean;
+  hospital?: string; // centro de salud / clínica
+  area?: string; // área de hospitalización (opcional)
+  apellido?: string;
+  genero?: string;
+  estadoSalud?: string;
+  foto?: string; // URL/dataURL de la foto del paciente (opcional)
+  ubicacion?: GeoPunto; // coordenadas (del hospital o referencia)
   creadoEn: number;
   creadorEmail?: string;
 }
