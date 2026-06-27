@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Activity,
   HeartPulse,
+  Paperclip,
   Pill,
   Mic,
   MicOff,
@@ -55,7 +57,7 @@ export default function MedicosPage() {
       <SectionHeader
         titulo="Tratamientos médicos"
         descripcion="Banco de medicamentos para donar y registro de personas con tratamiento."
-        icon={<HeartPulse className="size-5" />}
+        icon={<Activity className="size-5" />}
         color="var(--sec-medicos)"
       />
       <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-surface-2 p-1">
@@ -439,6 +441,9 @@ function RegistroPersonas() {
   const [pagina, setPagina] = useState(1);
   const [limite, setLimite] = useState(15);
   const [detalle, setDetalle] = useState<RegistroMedico | null>(null);
+  const [escuchando, setEscuchando] = useState(false);
+  const [soportaVoz, setSoportaVoz] = useState(true);
+  const recRef = useRef<unknown>(null);
   const { usuario, iniciarSesion } = useAuth();
 
   async function recargar() {
@@ -447,7 +452,35 @@ function RegistroPersonas() {
   }
   useEffect(() => {
     recargar();
+    const SR =
+      (typeof window !== "undefined" &&
+        ((window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+          (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition)) ||
+      null;
+    setSoportaVoz(Boolean(SR));
   }, []);
+
+  function buscarPorVoz() {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    recRef.current = rec;
+    rec.lang = "es-VE";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = () => setEscuchando(true);
+    rec.onend = () => setEscuchando(false);
+    rec.onerror = () => setEscuchando(false);
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const t = e.results[0][0].transcript;
+      setQ(t.replace(/[.?¿!¡]/g, "").trim());
+    };
+    rec.start();
+  }
 
   useEffect(() => {
     setPagina(1);
@@ -486,27 +519,44 @@ function RegistroPersonas() {
         if (!usuario) return iniciarSesion();
         setMostrarForm((v) => !v);
       }}>
-        <UserPlus className="size-4" /> {mostrarForm ? "Cerrar formulario" : "Registrar persona con tratamiento"}
+        <UserPlus className="size-4" /> {mostrarForm ? "Cerrar formulario" : "Registrar"}
       </Button>
 
       {mostrarForm && usuario && <FormPersona creadorEmail={usuario.email} onCreado={() => { setMostrarForm(false); recargar(); }} />}
 
-      <div className="mt-4 relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por nombre, cédula, hospital, ciudad o medicamento…"
-          className="h-12 w-full rounded-xl border border-border bg-surface pl-9 pr-4 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
+      <div className="mt-4 flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por nombre, cédula, hospital, ciudad o medicamento…"
+            className="h-12 w-full rounded-xl border border-border bg-surface pl-9 pr-4 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+        {soportaVoz && (
+          <button
+            onClick={escuchando ? undefined : buscarPorVoz}
+            aria-label="Buscar por voz"
+            className={cx(
+              "grid size-12 shrink-0 place-items-center rounded-xl border transition-colors",
+              escuchando
+                ? "animate-pulse border-danger bg-danger text-white"
+                : "border-border bg-surface text-[var(--sec-medicos)]",
+            )}
+          >
+            {escuchando ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+          </button>
+        )}
       </div>
+      {escuchando && <p className="mt-2 text-center text-sm text-danger">🎙️ Escuchando… di el nombre o diagnóstico</p>}
 
       {cargando ? (
         <Spinner />
       ) : filtrados.length === 0 ? (
         <div className="mt-4">
           <EmptyState
-            icon={<HeartPulse className="size-8" />}
+            icon={<Activity className="size-8" />}
             titulo="Sin registros"
             detalle={q ? "No se encontraron resultados para tu búsqueda." : "Registra personas que requieren un tratamiento continuo para coordinar ayuda."}
           />
@@ -721,12 +771,10 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
 
   const valido =
     nombre.trim() &&
-    ciudad.trim() &&
-    municipio.trim() &&
-    parroquia.trim() &&
+    (hospitalizado || (ciudad.trim() && municipio.trim() && parroquia.trim())) &&
     telefono.trim() &&
     (!hospitalizado || hospital.trim()) &&
-    condiciones.every((c) => c.patologia.trim() && c.medicamentos.every(m => m.nombre.trim()));
+    condiciones.every((c) => c.patologia.trim() && (hospitalizado || c.medicamentos.every(m => m.nombre.trim())));
 
   async function onFoto(file: File | null) {
     if (!file) return;
@@ -751,14 +799,16 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
         edad: edad ? parseInt(edad, 10) : undefined,
         cedula: cedula.trim() || undefined,
         patologia: condiciones[0].patologia.trim(),
-        tratamiento: condiciones[0].medicamentos[0].nombre.trim(),
+        tratamiento: condiciones[0].medicamentos[0].nombre.trim() || (hospitalizado ? "Sin especificar" : ""),
         posologia: condiciones[0].medicamentos[0].posologia?.trim() || undefined,
         condicionesMedicas: condiciones.map(c => ({
           patologia: c.patologia.trim(),
-          medicamentos: c.medicamentos.map(m => ({
-            nombre: m.nombre.trim(),
-            posologia: m.posologia?.trim() || undefined,
-          }))
+          medicamentos: c.medicamentos
+            .filter(m => m.nombre.trim() || !hospitalizado)
+            .map(m => ({
+              nombre: m.nombre.trim() || "Sin especificar",
+              posologia: m.posologia?.trim() || undefined,
+            }))
         })),
         ciudad: ciudad.trim(),
         municipio: municipio.trim(),
@@ -805,7 +855,7 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
 
       {/* Foto del paciente (opcional) */}
       <Field label="Foto del paciente (opcional)">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="size-16 shrink-0 overflow-hidden rounded-2xl bg-surface-2 clay-inset">
             {foto ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -816,11 +866,17 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
               </div>
             )}
           </div>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold clay-sm active:scale-95">
-            {procesandoFoto ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-            {foto ? "Cambiar foto" : "Subir / tomar foto"}
-            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFoto(e.target.files?.[0] ?? null)} />
-          </label>
+          <div className="flex overflow-hidden rounded-full bg-surface clay-sm">
+            <label className="inline-flex cursor-pointer items-center gap-1.5 px-4 py-2 text-sm font-semibold hover:bg-surface-2 transition-colors border-r border-border active:bg-surface-2">
+              {procesandoFoto ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+              Foto
+              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFoto(e.target.files?.[0] ?? null)} />
+            </label>
+            <label className="inline-flex cursor-pointer items-center gap-1.5 px-4 py-2 text-sm font-semibold hover:bg-surface-2 transition-colors active:bg-surface-2">
+              <Paperclip className="size-4" /> Adjuntar
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/heic" className="hidden" onChange={(e) => onFoto(e.target.files?.[0] ?? null)} />
+            </label>
+          </div>
           {foto && (
             <button type="button" onClick={() => setFoto("")} className="text-xs text-danger hover:underline">
               Quitar
@@ -859,7 +915,7 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
           <div key={i} className="relative space-y-3 rounded-lg border border-border bg-surface p-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
-                <Field label={i === 0 ? "Patología / enfermedad" : `Patología adicional ${i + 1}`} required>
+                <Field label={i === 0 ? "Diagnóstico" : `Diagnóstico adicional ${i + 1}`} required>
                   <Input
                     value={c.patologia}
                     onChange={(e) => {
@@ -886,7 +942,7 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
             <div className="space-y-3 pl-4 border-l-2 border-border/50">
               {c.medicamentos.map((m, j) => (
                 <div key={j} className="grid grid-cols-2 gap-3 relative">
-                  <Field label={j === 0 ? "Medicamento (presentación / mg)" : `Medicamento ${j + 1} (presentación / mg)`} required>
+                  <Field label={j === 0 ? "Medicamento (presentación / mg)" : `Medicamento ${j + 1} (presentación / mg)`} required={!hospitalizado}>
                     <Input
                       value={m.nombre}
                       onChange={(e) => {
@@ -946,34 +1002,40 @@ function FormPersona({ onCreado, creadorEmail }: { onCreado: () => void; creador
                   return { ...item, medicamentos: [...item.medicamentos, { nombre: "", posologia: "" }] };
                 }))}
               >
-                <Plus className="size-4 mr-1" /> Añadir otro medicamento
+                <Plus className="size-4 mr-1" /> Añadir
               </Button>
             </div>
           </div>
         ))}
-        <Button
-          type="button"
-          variant="secondary"
-          full
-          onClick={() => setCondiciones((prev) => [...prev, { patologia: "", medicamentos: [{ nombre: "", posologia: "" }] }])}
-        >
-          <Plus className="size-4 mr-1" /> Añadir otra patología
-        </Button>
+        {!hospitalizado && (
+          <Button
+            type="button"
+            variant="secondary"
+            full
+            onClick={() => setCondiciones((prev) => [...prev, { patologia: "", medicamentos: [{ nombre: "", posologia: "" }] }])}
+          >
+            <Plus className="size-4 mr-1" /> Añadir otro diagnóstico
+          </Button>
+        )}
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <Field label="Ciudad" required>
-          <Input value={ciudad} onChange={(e) => setCiudad(e.target.value)} />
-        </Field>
-        <Field label="Municipio" required>
-          <Input value={municipio} onChange={(e) => setMunicipio(e.target.value)} />
-        </Field>
-        <Field label="Parroquia" required>
-          <Input value={parroquia} onChange={(e) => setParroquia(e.target.value)} />
-        </Field>
-      </div>
-      <Field label="Dirección / N° de casa (Opcional)">
-        <Input value={direccion} onChange={(e) => setDireccion(e.target.value)} />
-      </Field>
+      {!hospitalizado && (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Ciudad" required>
+              <Input value={ciudad} onChange={(e) => setCiudad(e.target.value)} />
+            </Field>
+            <Field label="Municipio" required>
+              <Input value={municipio} onChange={(e) => setMunicipio(e.target.value)} />
+            </Field>
+            <Field label="Parroquia" required>
+              <Input value={parroquia} onChange={(e) => setParroquia(e.target.value)} />
+            </Field>
+          </div>
+          <Field label="Dirección / N° de casa (Opcional)">
+            <Input value={direccion} onChange={(e) => setDireccion(e.target.value)} />
+          </Field>
+        </>
+      )}
       <Field label="Teléfono" required>
         <Input type="tel" inputMode="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+58 …" />
       </Field>
