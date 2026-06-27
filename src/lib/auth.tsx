@@ -54,11 +54,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           };
           setUsuario(userObj);
           import("./db").then(({ guardarUsuario }) => guardarUsuario(userObj));
+
+          // Detectar primer login: creationTime muy cercano a lastSignInTime
+          const meta = u.metadata;
+          const creadoMs = meta.creationTime ? new Date(meta.creationTime).getTime() : 0;
+          const loginMs  = meta.lastSignInTime ? new Date(meta.lastSignInTime).getTime() : 0;
+          const esPrimero = Math.abs(loginMs - creadoMs) < 10_000; // 10 seg de margen
+          if (esPrimero && u.email) {
+            fetch("/api/email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                plantilla: "bienvenida",
+                datos: {
+                  to: u.email,
+                  registradorNombre: u.displayName ?? undefined,
+                },
+              }),
+            }).catch((err) => console.warn("[email] Bienvenida no enviada:", err));
+          }
         } else {
           setUsuario(null);
         }
         setCargando(false);
       });
+
     })();
     return () => unsub();
   }, []);

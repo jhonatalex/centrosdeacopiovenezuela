@@ -19,7 +19,11 @@ import type {
   SolicitudResponsabilidad,
   WhaibotConfig,
   WhaibotPlantilla,
+  WhaibotEnvio,
+  EmailCampania,
+  EmailEnvioLog,
 } from "./types";
+
 
 export const esDemo = !firebaseHabilitado;
 
@@ -479,3 +483,101 @@ export async function eliminarPlantilla(id: string): Promise<void> {
   const { doc, deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(db!, "whaibot_plantillas", id));
 }
+
+/* ===================== WHAIBOT HISTORIAL DE ENVÍOS ===================== */
+
+/** Registra un envío de WhatsApp (llamar después de cada send) */
+export async function registrarEnvioWhaibot(envio: WhaibotEnvio): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<WhaibotEnvio>("whaibot_envios", []);
+    lsSet("whaibot_envios", [envio, ...all]);
+    return;
+  }
+  await fsSet("whaibot_envios", envio.id, envio as unknown as object);
+}
+
+/** Lista envíos de WhatsApp. Si se pasa plantillaId filtra por esa plantilla. */
+export async function listarEnviosWhaibot(plantillaId?: string): Promise<WhaibotEnvio[]> {
+  const all = esDemo
+    ? lsGet<WhaibotEnvio>("whaibot_envios", [])
+    : await fsAll<WhaibotEnvio>("whaibot_envios");
+  const sorted = all.sort((a, b) => b.enviadoEn - a.enviadoEn);
+  return plantillaId ? sorted.filter((e) => e.plantillaId === plantillaId) : sorted;
+}
+
+/** ¿Ya se envió esta plantilla a este número? */
+export async function yaEnviadoWhaibot(plantillaId: string, numero: string): Promise<boolean> {
+  const envios = await listarEnviosWhaibot(plantillaId);
+  return envios.some((e) => e.numero === numero && e.ok);
+}
+
+/* ===================== EMAIL CAMPAÑAS ===================== */
+
+export async function listarCampaniasEmail(): Promise<EmailCampania[]> {
+  if (esDemo) {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("acopio:email_campanias") : null;
+    return raw ? (JSON.parse(raw) as EmailCampania[]) : [];
+  }
+  return fsAll<EmailCampania>("email_campanias");
+}
+
+export async function crearCampaniaEmail(c: EmailCampania): Promise<void> {
+  if (esDemo) {
+    const all = await listarCampaniasEmail();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:email_campanias", JSON.stringify([c, ...all]));
+    }
+    return;
+  }
+  await fsSet("email_campanias", c.id, c as unknown as object);
+}
+
+export async function actualizarCampaniaEmail(c: EmailCampania): Promise<void> {
+  if (esDemo) {
+    const all = await listarCampaniasEmail();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:email_campanias", JSON.stringify(all.map((x) => (x.id === c.id ? c : x))));
+    }
+    return;
+  }
+  await fsSet("email_campanias", c.id, c as unknown as object);
+}
+
+export async function eliminarCampaniaEmail(id: string): Promise<void> {
+  if (esDemo) {
+    const all = await listarCampaniasEmail();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:email_campanias", JSON.stringify(all.filter((x) => x.id !== id)));
+    }
+    return;
+  }
+  const { db } = getFirebase();
+  const { doc, deleteDoc } = await import("firebase/firestore");
+  await deleteDoc(doc(db!, "email_campanias", id));
+}
+
+/* ===================== EMAIL HISTORIAL DE ENVÍOS ===================== */
+
+export async function registrarEnvioEmail(log: EmailEnvioLog): Promise<void> {
+  if (esDemo) {
+    const all = lsGet<EmailEnvioLog>("email_envios", []);
+    lsSet("email_envios", [log, ...all]);
+    return;
+  }
+  await fsSet("email_envios", log.id, log as unknown as object);
+}
+
+export async function listarEnviosEmail(campaniaId?: string): Promise<EmailEnvioLog[]> {
+  const all = esDemo
+    ? lsGet<EmailEnvioLog>("email_envios", [])
+    : await fsAll<EmailEnvioLog>("email_envios");
+  const sorted = all.sort((a, b) => b.enviadoEn - a.enviadoEn);
+  return campaniaId ? sorted.filter((e) => e.campaniaId === campaniaId) : sorted;
+}
+
+/** ¿Ya se envió esta campaña a este email? */
+export async function yaEnviadoEmail(campaniaId: string, email: string): Promise<boolean> {
+  const envios = await listarEnviosEmail(campaniaId);
+  return envios.some((e) => e.email === email && e.ok);
+}
+
