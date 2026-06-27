@@ -224,7 +224,7 @@ export default function WhaibotPage() {
   const [centros, setCentros] = useState<Centro[]>([]);
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [numeros, setNumeros] = useState<{ numero: string; centro: string; id: string }[]>([]);
-  
+
   // Historiales
   const [historialWhaibot, setHistorialWhaibot] = useState<WhaibotEnvio[]>([]);
   const [historialEmail, setHistorialEmail] = useState<EmailEnvioLog[]>([]);
@@ -407,7 +407,7 @@ export default function WhaibotPage() {
   function abrirEnvio(p: WhaibotPlantilla) {
     setPlantillaEnvio(p);
     setResultados([]);
-    
+
     // Obtener los números que ya recibieron exitosamente esta plantilla
     const yaEnviados = new Set(
       historialWhaibot
@@ -443,7 +443,7 @@ export default function WhaibotPage() {
       if (res.length > 0) await new Promise((r) => setTimeout(r, 1500));
       const infoCentro = numeros.find((n) => n.numero === numero);
       const centroNombre = infoCentro?.centro ?? "Centro";
-      
+
       try {
         const body: Record<string, string> = {
           to: numero,
@@ -483,7 +483,7 @@ export default function WhaibotPage() {
       } catch (e) {
         const errMsg = "Error de red o conexión";
         res.push({ numero, ok: false, msg: errMsg });
-        
+
         await registrarEnvioWhaibot({
           id: nuevoId(),
           plantillaId: plantillaEnvio.id,
@@ -538,7 +538,7 @@ export default function WhaibotPage() {
     for (const email of lista) {
       const usr = usuarios.find((u) => u.email === email);
       const nombre = usr?.nombre ?? "Voluntario/a";
-      
+
       try {
         const response = await fetch("/api/email", {
           method: "POST",
@@ -573,7 +573,7 @@ export default function WhaibotPage() {
       } catch (e) {
         const errMsg = "Error de conexión con la API de email";
         res.push({ email, ok: false, msg: errMsg });
-        
+
         await registrarEnvioEmail({
           id: nuevoId(),
           campaniaId: campaniaEnvio.id,
@@ -723,7 +723,7 @@ export default function WhaibotPage() {
             const resultado = resultados.find((r) => r.numero === n.numero);
             const yaEnviado = numerosYaEnviados.has(n.numero);
             const seleccionado = seleccionados.has(n.numero);
-            
+
             return (
               <li key={n.numero}>
                 <label
@@ -857,7 +857,7 @@ export default function WhaibotPage() {
             const resultado = resultadosEmail.find((r) => r.email === u.email);
             const yaEnviado = emailsYaEnviados.has(u.email);
             const seleccionado = seleccionadosEmail.has(u.email);
-            
+
             return (
               <li key={u.uid}>
                 <label
@@ -1112,7 +1112,7 @@ export default function WhaibotPage() {
                 <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted flex items-center gap-2">
                   <History className="size-4" /> Registro General de Envíos
                 </h2>
-                
+
                 <div className="relative max-w-xs w-full">
                   <Input
                     value={busquedaHistorial}

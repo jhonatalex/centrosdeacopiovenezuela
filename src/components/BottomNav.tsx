@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Map, HeartPulse, LifeBuoy, ShieldAlert, BookOpen, Building2 } from "lucide-react";
+import { Map, Activity, LifeBuoy, ShieldAlert, BookOpen, Building2 } from "lucide-react";
 import { cx } from "./ui";
 
 const items = [
   { href: "/", label: "Mapa", icon: Map, color: "var(--sec-acopio)" },
   { href: "/centros", label: "Acopios", icon: Building2, color: "var(--sec-acopio)" },
-  { href: "/medicos", label: "Médicos", icon: HeartPulse, color: "var(--sec-medicos)" },
+  { href: "/medicos", label: "Médicos", icon: Activity, color: "var(--sec-medicos)" },
   { href: "/rescate", label: "Rescate", icon: LifeBuoy, color: "var(--sec-rescate)" },
   { href: "/prevencion", label: "Prevención", icon: ShieldAlert, color: "var(--sec-prevencion)" },
 ];

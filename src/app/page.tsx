@@ -12,12 +12,13 @@ import {
   Loader2,
   Building2,
   LifeBuoy,
-  HeartPulse,
+  Activity,
   ShieldAlert,
   PackageCheck,
 } from "lucide-react";
-import { listarCentrosAprobados, listarRescates } from "@/lib/db";
+import { listarCentrosAprobados, listarRescates, listarRegistrosMedicos } from "@/lib/db";
 import type { Centro, GeoPunto, Rescate } from "@/lib/types";
+import type { HospitalMarker } from "@/components/MapView";
 import { Badge, cx } from "@/components/ui";
 import Footer from "@/components/Footer";
 
@@ -33,24 +34,38 @@ const MapView = dynamic(() => import("@/components/MapView"), {
 const acciones = [
   { href: "/registrar", label: "Registrar centro", icon: Building2, color: "var(--sec-acopio)" },
   { href: "/rescate", label: "Pedir rescate", icon: LifeBuoy, color: "var(--sec-rescate)" },
-  { href: "/medicos", label: "Medicinas", icon: HeartPulse, color: "var(--sec-medicos)" },
+  { href: "/medicos", label: "Asistencia Médica", icon: Activity, color: "var(--sec-medicos)" },
   { href: "/prevencion", label: "Prevención", icon: ShieldAlert, color: "var(--sec-prevencion)" },
 ];
 
 export default function HomePage() {
   const [centros, setCentros] = useState<Centro[]>([]);
   const [rescates, setRescates] = useState<Rescate[]>([]);
+  const [hospitales, setHospitales] = useState<HospitalMarker[]>([]);
+  const [hospitalizados, setHospitalizados] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [q, setQ] = useState("");
+  const [verHospitales, setVerHospitales] = useState(true);
   const [miUbicacion, setMiUbicacion] = useState<GeoPunto | null>(null);
   const [enfocar, setEnfocar] = useState<GeoPunto | null>(null);
   const [localizando, setLocalizando] = useState(false);
 
   useEffect(() => {
-    Promise.all([listarCentrosAprobados(), listarRescates()])
-      .then(([c, r]) => {
+    Promise.all([listarCentrosAprobados(), listarRescates(), listarRegistrosMedicos()])
+      .then(([c, r, medicos]) => {
         setCentros(c);
         setRescates(r);
+        // Agrupa pacientes hospitalizados (con ubicación) por hospital → marcadores.
+        const map = new Map<string, HospitalMarker>();
+        for (const p of medicos) {
+          if (!p.hospitalizado || !p.hospital || !p.ubicacion) continue;
+          const key = p.hospital.trim();
+          const ex = map.get(key);
+          if (ex) ex.pacientes += 1;
+          else map.set(key, { nombre: key, ubicacion: p.ubicacion, pacientes: 1 });
+        }
+        setHospitales([...map.values()].sort((a, b) => b.pacientes - a.pacientes));
+        setHospitalizados(medicos.filter((p) => p.hospitalizado).length);
       })
       .finally(() => setCargando(false));
   }, []);
@@ -99,8 +114,9 @@ export default function HomePage() {
           Encuentra centros de acopio, dona lo que sobra y pide lo que necesitas.
         </p>
 
-        <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <div className="mt-4 grid grid-cols-2 gap-2.5">
           <Stat valor={centros.length} label="Centros activos" color="var(--sec-acopio)" />
+          <Stat valor={hospitalizados} label="Hospitalizados" color="var(--sec-medicos)" />
           <Stat valor={urgentes.length} label="Piden ayuda" color="var(--sec-prevencion)" />
           <Stat valor={rescatesActivos} label="Rescates" color="var(--sec-rescate)" />
         </div>
@@ -128,9 +144,9 @@ export default function HomePage() {
       {/* Mapa */}
       <section>
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-lg font-bold">Mapa de centros</h2>
+          <h2 className="font-display text-lg font-bold">Mapa</h2>
           <span className="text-xs font-medium text-muted">
-            {cargando ? "Cargando…" : `${filtrados.length} activos`}
+            {cargando ? "Cargando…" : `${filtrados.length} centros · ${hospitales.length} hospitales`}
           </span>
         </div>
 
@@ -144,8 +160,31 @@ export default function HomePage() {
           />
         </div>
 
+        {/* Leyenda / toggle de hospitales */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-medium clay-sm">
+            <span className="size-2.5 rounded-full bg-[var(--sec-acopio)]" /> Centros de acopio
+          </span>
+          <button
+            onClick={() => setVerHospitales((v) => !v)}
+            className={cx(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all clay-sm",
+              verHospitales ? "bg-surface text-foreground" : "bg-surface-2 text-muted-2",
+            )}
+          >
+            <span className="size-2.5 rounded-full bg-[var(--sec-medicos)]" /> Hospitales
+            {verHospitales ? " ✓" : ""}
+          </button>
+        </div>
+
         <div className="relative h-[46vh] min-h-[300px] overflow-hidden rounded-[1.75rem] clay">
-          <MapView centros={filtrados} miUbicacion={miUbicacion} enfocar={enfocar} className="z-0" />
+          <MapView
+            centros={filtrados}
+            hospitales={verHospitales ? hospitales : []}
+            miUbicacion={miUbicacion}
+            enfocar={enfocar}
+            className="z-0"
+          />
           <button
             onClick={localizar}
             aria-label="Mi ubicación"
