@@ -12,7 +12,7 @@ import {
   Loader2,
   Building2,
   LifeBuoy,
-  HeartPulse,
+  Activity,
   ShieldAlert,
   PackageCheck,
 } from "lucide-react";
@@ -34,7 +34,7 @@ const MapView = dynamic(() => import("@/components/MapView"), {
 const acciones = [
   { href: "/registrar", label: "Registrar centro", icon: Building2, color: "var(--sec-acopio)" },
   { href: "/rescate", label: "Pedir rescate", icon: LifeBuoy, color: "var(--sec-rescate)" },
-  { href: "/medicos", label: "Asistencia Médica", icon: HeartPulse, color: "var(--sec-medicos)" },
+  { href: "/medicos", label: "Asistencia Médica", icon: Activity, color: "var(--sec-medicos)" },
   { href: "/prevencion", label: "Prevención", icon: ShieldAlert, color: "var(--sec-prevencion)" },
 ];
 
