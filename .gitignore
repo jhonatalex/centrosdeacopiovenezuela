@@ -49,3 +49,4 @@ datafull.json
 datafull copy.json
 # data export grande (regenerable con scripts/export-hospitalizaciones.mjs)
 scripts/hospitalizaciones-data.json
+apphosting.yaml
