@@ -19,6 +19,7 @@ import type {
   SolicitudResponsabilidad,
   WhaibotConfig,
   WhaibotPlantilla,
+  ApiKey,
 } from "./types";
 
 export const esDemo = !firebaseHabilitado;
@@ -521,4 +522,68 @@ export async function eliminarPlantilla(id: string): Promise<void> {
   const { db } = getFirebase();
   const { doc, deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(db!, "whaibot_plantillas", id));
+}
+
+/* =============================== API KEYS (hospitalizados) =============================== */
+
+export async function listarApiKeys(): Promise<ApiKey[]> {
+  if (esDemo) {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("acopio:api_keys") : null;
+    return raw ? (JSON.parse(raw) as ApiKey[]) : [];
+  }
+  return fsAll<ApiKey>("api_keys");
+}
+
+export async function crearApiKey(key: ApiKey): Promise<void> {
+  if (esDemo) {
+    const all = await listarApiKeys();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:api_keys", JSON.stringify([key, ...all]));
+    }
+    return;
+  }
+  await fsSet("api_keys", key.id, key as unknown as object);
+}
+
+export async function revocarApiKey(id: string): Promise<void> {
+  if (esDemo) {
+    const all = await listarApiKeys();
+    const updated = all.map((k) => (k.id === id ? { ...k, activa: false } : k));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:api_keys", JSON.stringify(updated));
+    }
+    return;
+  }
+  await fsUpdate("api_keys", id, { activa: false });
+}
+
+export async function eliminarApiKey(id: string): Promise<void> {
+  if (esDemo) {
+    const all = await listarApiKeys();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("acopio:api_keys", JSON.stringify(all.filter((k) => k.id !== id)));
+    }
+    return;
+  }
+  await fsDelete("api_keys", id);
+}
+
+/**
+ * Valida una API Key y actualiza su timestamp de último uso.
+ * Devuelve la key si es válida y activa, null si no.
+ * SOLO para uso en rutas de servidor (Route Handlers).
+ */
+export async function validarApiKey(token: string): Promise<ApiKey | null> {
+  if (!token) return null;
+  if (esDemo) return null; // en modo demo no hay servidor
+  const { db } = getFirebase();
+  if (!db) return null;
+  const { doc, getDoc, updateDoc } = await import("firebase/firestore");
+  const snap = await getDoc(doc(db, "api_keys", token));
+  if (!snap.exists()) return null;
+  const key = snap.data() as ApiKey;
+  if (!key.activa) return null;
+  // Actualizar ultimoUso de forma no bloqueante
+  updateDoc(snap.ref, { ultimoUso: Date.now() }).catch(() => {});
+  return key;
 }

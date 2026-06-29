@@ -168,3 +168,12 @@ export interface WhaibotPlantilla {
   creadoEn: number;
 }
 
+/** API Key para el endpoint público de hospitalizados */
+export interface ApiKey {
+  id: string;           // también es el token (vz_...)
+  nombre: string;       // nombre/descripción del cliente que la usará
+  creadoEn: number;
+  creadoPor: string;    // email del admin que la generó
+  activa: boolean;
+  ultimoUso?: number;   // epoch ms del último request autenticado
+}
