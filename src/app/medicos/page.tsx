@@ -23,6 +23,10 @@ import {
   Loader2,
   ExternalLink,
   Download,
+  Key,
+  Copy,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react";
 import {
   listarRegistrosMedicos,
@@ -36,11 +40,16 @@ import {
   ajustarCantidadMedicamento,
   subirFoto,
   nuevoId,
+  listarApiKeys,
+  crearApiKey,
+  revocarApiKey,
+  eliminarApiKey,
 } from "@/lib/db";
+import { generarApiKey } from "@/lib/apiKeys";
 import { fetchPersonasVR, filtrarNuevos, mapearPersonaVR, detectarYFusionarDuplicados } from "@/lib/venezuelaReporta";
 import { fileADataUrl } from "@/lib/img";
 import { useAuth } from "@/lib/auth";
-import type { Medicamento, RegistroMedico } from "@/lib/types";
+import type { Medicamento, RegistroMedico, ApiKey } from "@/lib/types";
 import {
   Badge,
   Button,
@@ -57,8 +66,11 @@ type Tab = "banco" | "personas";
 
 export default function MedicosPage() {
   const [tab, setTab] = useState<Tab>("banco");
+  const [modalApiKey, setModalApiKey] = useState(false);
+  const { usuario } = useAuth();
+
   return (
-    <div className="px-4 pb-10 pt-4">
+    <div className="relative px-4 pb-10 pt-4">
       <SectionHeader
         titulo="Tratamientos médicos"
         descripcion="Banco de medicamentos para donar y registro de personas con tratamiento."
@@ -87,9 +99,13 @@ export default function MedicosPage() {
       </div>
 
       {tab === "banco" ? <BancoMedicamentos /> : <RegistroPersonas />}
+
+      {tab === "banco" ? <BancoMedicamentos /> : <RegistroPersonas />}
     </div>
   );
 }
+
+
 
 /* ============================ Banco de medicamentos ============================ */
 
@@ -574,7 +590,7 @@ function RegistroPersonas() {
       }
       return parts.filter(Boolean).some((val) => val!.toLowerCase().includes(text));
     });
-  }, [items, q]);
+  }, [items, q, esAdmin]);
 
   const totalPaginas = Math.ceil(filtrados.length / limite) || 1;
   const paginados = filtrados.slice((pagina - 1) * limite, pagina * limite);
