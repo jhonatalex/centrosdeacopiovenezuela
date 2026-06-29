@@ -20,6 +20,8 @@ import {
   ShieldCheck,
   ShieldOff,
   X,
+  CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import { 
   listarCentrosAprobados, 
