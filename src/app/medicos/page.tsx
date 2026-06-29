@@ -590,7 +590,7 @@ function RegistroPersonas() {
       }
       return parts.filter(Boolean).some((val) => val!.toLowerCase().includes(text));
     });
-  }, [items, q, esAdmin]);
+  }, [items, q]);
 
   const totalPaginas = Math.ceil(filtrados.length / limite) || 1;
   const paginados = filtrados.slice((pagina - 1) * limite, pagina * limite);
