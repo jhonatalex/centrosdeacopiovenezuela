@@ -234,7 +234,50 @@ export async function eliminarRegistroMedico(id: string): Promise<void> {
   await fsDelete("medicos", id);
 }
 
-/* =============================== MEDICAMENTOS =============================== */
+/**
+ * Importación en lote: guarda múltiples registros médicos a la vez.
+ * En modo demo usa localStorage; en Firebase usa escrituras individuales secuenciales
+ * (Firestore batch tiene límite de 500 operaciones por batch).
+ */
+export async function importarRegistrosMedicos(registros: RegistroMedico[]): Promise<void> {
+  if (registros.length === 0) return;
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    lsSet("medicos", [...registros, ...all]);
+    return;
+  }
+  // Firestore: escribir en lotes de hasta 500
+  const { db } = getFirebase();
+  const { writeBatch, doc, collection } = await import("firebase/firestore");
+  const CHUNK = 500;
+  for (let i = 0; i < registros.length; i += CHUNK) {
+    const batch = writeBatch(db!);
+    registros.slice(i, i + CHUNK).forEach((r) => {
+      const ref = doc(collection(db!, "medicos"), r.id);
+      batch.set(ref, limpiarUndefined(r as unknown as object), { merge: true });
+    });
+    await batch.commit();
+  }
+}
+
+/** Elimina múltiples registros médicos en lote (para limpieza de duplicados). */
+export async function eliminarRegistrosMedicos(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    lsSet("medicos", all.filter((m) => !ids.includes(m.id)));
+    return;
+  }
+  const { db } = getFirebase();
+  const { writeBatch, doc } = await import("firebase/firestore");
+  const CHUNK = 500;
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const batch = writeBatch(db!);
+    ids.slice(i, i + CHUNK).forEach((id) => batch.delete(doc(db!, "medicos", id)));
+    await batch.commit();
+  }
+}
+
 
 export async function listarMedicamentos(): Promise<Medicamento[]> {
   const all = esDemo

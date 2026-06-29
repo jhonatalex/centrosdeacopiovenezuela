@@ -86,6 +86,9 @@ export interface RegistroMedico {
   estadoSalud?: string;
   foto?: string; // URL/dataURL de la foto del paciente (opcional)
   ubicacion?: GeoPunto; // coordenadas (del hospital o referencia)
+  origenExterno?: string; // fuente externa: "venezuelareporta", etc.
+  origenId?: string;      // id del registro en la fuente externa
+  fichaUrl?: string;      // enlace a la ficha canónica externa
   creadoEn: number;
   creadorEmail?: string;
 }
