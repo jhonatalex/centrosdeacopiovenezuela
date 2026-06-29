@@ -21,11 +21,15 @@ import {
   X,
   ChevronRight,
   Loader2,
+  ExternalLink,
+  Download,
 } from "lucide-react";
 import {
   listarRegistrosMedicos,
   crearRegistroMedico,
   eliminarRegistroMedico,
+  eliminarRegistrosMedicos,
+  importarRegistrosMedicos,
   listarMedicamentos,
   crearMedicamento,
   eliminarMedicamento,
@@ -33,6 +37,7 @@ import {
   subirFoto,
   nuevoId,
 } from "@/lib/db";
+import { fetchPersonasVR, filtrarNuevos, mapearPersonaVR, detectarYFusionarDuplicados } from "@/lib/venezuelaReporta";
 import { fileADataUrl } from "@/lib/img";
 import { useAuth } from "@/lib/auth";
 import type { Medicamento, RegistroMedico } from "@/lib/types";
@@ -444,6 +449,12 @@ function RegistroPersonas() {
   const [escuchando, setEscuchando] = useState(false);
   const [soportaVoz, setSoportaVoz] = useState(true);
   const recRef = useRef<unknown>(null);
+  // Importación Venezuela Reporta
+  const [importando, setImportando] = useState(false);
+  const [resultadoImport, setResultadoImport] = useState<{ nuevos: number; omitidos: number } | null>(null);
+  // Deduplicación
+  const [deduplicando, setDeduplicando] = useState(false);
+  const [resultadoDedup, setResultadoDedup] = useState<{ grupos: number; eliminados: number } | null>(null);
   const { usuario, iniciarSesion } = useAuth();
 
   async function recargar() {
@@ -480,6 +491,61 @@ function RegistroPersonas() {
       setQ(t.replace(/[.?¿!¡]/g, "").trim());
     };
     rec.start();
+  }
+
+  async function importarDesdeVR() {
+    if (!usuario) return iniciarSesion();
+    setImportando(true);
+    setResultadoImport(null);
+    try {
+      let todasNuevas: ReturnType<typeof mapearPersonaVR>[] = [];
+      let omitidos = 0;
+      const LIMIT = 100;
+      for (let offset = 0; offset < 300; offset += LIMIT) {
+        const resp = await fetchPersonasVR(offset, LIMIT);
+        const nuevas = filtrarNuevos(resp.personas, items);
+        omitidos += resp.personas.length - nuevas.length;
+        todasNuevas = [...todasNuevas, ...nuevas.map(mapearPersonaVR)];
+        if (resp.personas.length < LIMIT) break;
+      }
+      if (todasNuevas.length > 0) {
+        await importarRegistrosMedicos(todasNuevas);
+        await recargar();
+      }
+      setResultadoImport({ nuevos: todasNuevas.length, omitidos });
+    } catch (err) {
+      console.error("Error importando Venezuela Reporta:", err);
+      setResultadoImport({ nuevos: -1, omitidos: 0 });
+    } finally {
+      setImportando(false);
+    }
+  }
+
+  async function deduplicar() {
+    if (!usuario) return iniciarSesion();
+    setDeduplicando(true);
+    setResultadoDedup(null);
+    try {
+      const todos = await listarRegistrosMedicos();
+      const { fusionados, eliminar, totalGrupos } = detectarYFusionarDuplicados(todos);
+      if (eliminar.length === 0) {
+        setResultadoDedup({ grupos: 0, eliminados: 0 });
+        return;
+      }
+      // Guardar los fusionados (solo los que cambiaron)
+      const actualizados = fusionados.filter((r) =>
+        todos.find((t) => t.id === r.id && JSON.stringify(t) !== JSON.stringify(r))
+      );
+      if (actualizados.length > 0) await importarRegistrosMedicos(actualizados);
+      await eliminarRegistrosMedicos(eliminar);
+      await recargar();
+      setResultadoDedup({ grupos: totalGrupos, eliminados: eliminar.length });
+    } catch (err) {
+      console.error("Error en deduplicación:", err);
+      setResultadoDedup({ grupos: -1, eliminados: 0 });
+    } finally {
+      setDeduplicando(false);
+    }
   }
 
   useEffect(() => {
@@ -587,6 +653,9 @@ function RegistroPersonas() {
                     <span className="block truncate font-display font-bold text-foreground">
                       {p.nombre}
                       {p.edad ? <span className="font-normal text-muted"> · {p.edad}a</span> : null}
+                      {p.origenExterno === "venezuelareporta" && (
+                        <span className="ml-1.5 inline-block rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">VR</span>
+                      )}
                     </span>
                     {p.hospitalizado && p.hospital ? (
                       <span className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate rounded-full bg-[var(--sec-medicos)]/12 px-2 py-0.5 text-[11px] font-semibold text-[var(--sec-medicos)]">
@@ -595,7 +664,7 @@ function RegistroPersonas() {
                       </span>
                     ) : (
                       <span className="mt-0.5 block truncate text-xs text-muted">
-                        {[p.ciudad, p.municipio].filter(Boolean).join(", ") || "Sin hospitalizar"}
+                        {[p.ciudad, p.municipio].filter(Boolean).join(", ") || (p.origenExterno === "venezuelareporta" ? "Venezuela Reporta" : "Sin hospitalizar")}
                       </span>
                     )}
                   </span>
@@ -640,6 +709,69 @@ function RegistroPersonas() {
             </div>
           </div>
         </>
+      )}
+
+      {/* ─── Panel: Venezuela Reporta + Deduplicación ─── */}
+      {usuario && (
+        <div className="mt-8 space-y-3 rounded-2xl border border-border bg-surface-2/30 p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted">Herramientas de datos</p>
+
+          {/* Importar Venezuela Reporta */}
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm">Importar desde Venezuela Reporta</p>
+              <p className="text-xs text-muted mt-0.5">Trae personas de venezuelareporta.org. Se omiten cédulas duplicadas.</p>
+            </div>
+            <button
+              onClick={importarDesdeVR}
+              disabled={importando}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--sec-medicos)] px-4 py-2 text-sm font-bold text-white shadow-lg transition-transform active:scale-95 hover:scale-105 disabled:opacity-60"
+            >
+              {importando ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+              {importando ? "Importando…" : "Importar"}
+            </button>
+          </div>
+          {resultadoImport && (
+            <div className={cx(
+              "rounded-xl px-3 py-2 text-sm",
+              resultadoImport.nuevos === -1 ? "bg-danger/10 text-danger" : "bg-success/10 text-success",
+            )}>
+              {resultadoImport.nuevos === -1
+                ? "❌ Error al conectar con la API. Verifica tu conexión."
+                : `✅ ${resultadoImport.nuevos} importada(s) · ${resultadoImport.omitidos} ya existían.`}
+            </div>
+          )}
+
+          <hr className="border-border" />
+
+          {/* Deduplicar */}
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <p className="font-semibold text-sm">Detectar y fusionar duplicados</p>
+              <p className="text-xs text-muted mt-0.5">Agrupa registros con misma cédula o nombre+ciudad y los fusiona en uno con más datos.</p>
+            </div>
+            <button
+              onClick={deduplicar}
+              disabled={deduplicando}
+              className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--sec-medicos)] text-[var(--sec-medicos)] px-4 py-2 text-sm font-bold transition-transform active:scale-95 hover:scale-105 disabled:opacity-60"
+            >
+              {deduplicando ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+              {deduplicando ? "Procesando…" : "Deduplicar"}
+            </button>
+          </div>
+          {resultadoDedup && (
+            <div className={cx(
+              "rounded-xl px-3 py-2 text-sm",
+              resultadoDedup.grupos === -1 ? "bg-danger/10 text-danger" : "bg-success/10 text-success",
+            )}>
+              {resultadoDedup.grupos === -1
+                ? "❌ Error al procesar. Intenta de nuevo."
+                : resultadoDedup.grupos === 0
+                ? "✅ No se encontraron duplicados."
+                : `✅ ${resultadoDedup.grupos} grupo(s) fusionados · ${resultadoDedup.eliminados} registro(s) eliminados.`}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Modal de detalle del paciente */}
@@ -717,7 +849,14 @@ function RegistroPersonas() {
               </p>
             )}
 
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-2 flex-wrap">
+              {detalle.fichaUrl && (
+                <a href={detalle.fichaUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button full size="sm" variant="outline">
+                    <ExternalLink className="size-4" /> Ver ficha Venezuela Reporta
+                  </Button>
+                </a>
+              )}
               {detalle.telefono && (
                 <a href={`tel:${detalle.telefono}`} className="flex-1">
                   <Button full size="sm">
