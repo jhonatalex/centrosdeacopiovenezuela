@@ -177,3 +177,36 @@ export interface ApiKey {
   activa: boolean;
   ultimoUso?: number;   // epoch ms del último request autenticado
 }
+
+/** Registro de un envío de WhatsApp por plantilla */
+export interface WhaibotEnvio {
+  id: string;
+  plantillaId: string;
+  plantillaNombre: string;
+  numero: string;
+  centroNombre: string;  // nombre del centro al que pertenece el número
+  ok: boolean;
+  error?: string;
+  enviadoEn: number;
+}
+
+/** Plantilla de campaña de email masivo */
+export interface EmailCampania {
+  id: string;
+  nombre: string;
+  asunto: string;
+  cuerpo: string;   // HTML del cuerpo del email
+  creadoEn: number;
+}
+
+/** Registro de un envío de email de campaña */
+export interface EmailEnvioLog {
+  id: string;
+  campaniaId: string;
+  campaniaNombre: string;
+  email: string;
+  usuarioNombre?: string;
+  ok: boolean;
+  error?: string;
+  enviadoEn: number;
+}

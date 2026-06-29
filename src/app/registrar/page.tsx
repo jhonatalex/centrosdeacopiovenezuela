@@ -356,7 +356,6 @@ export default function RegistrarPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     multiple
                     className="hidden"
                     onChange={(e) => onFotos(e.target.files)}

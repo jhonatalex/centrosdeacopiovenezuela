@@ -95,11 +95,35 @@ export default function AdminPage() {
     setProcesando(id);
     try {
       await moderarCentro(id, estado, motivo);
+
+      // Enviar notificación por email al registrador del centro
+      const centro = centros.find((c) => c.id === id);
+      const emailDest = centro?.registradorEmail;
+      if (emailDest && centro) {
+        fetch("/api/email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            plantilla: estado === "aprobado" ? "centro_aprobado" : "centro_rechazado",
+            datos: {
+              to: emailDest,
+              centroNombre: centro.nombre,
+              centroId: centro.id,
+              centroDireccion: centro.direccion,
+              centroCiudad: centro.ciudad,
+              registradorNombre: centro.registradorNombre,
+              motivoRechazo: motivo || undefined,
+            },
+          }),
+        }).catch((err) => console.warn("[email] No se pudo enviar notificación:", err));
+      }
+
       await recargar();
     } finally {
       setProcesando(null);
     }
   }
+
 
   async function responderSolicitud(id: string, estado: "aceptada" | "rechazada") {
     setProcesando(id);
