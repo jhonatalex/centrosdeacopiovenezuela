@@ -43,7 +43,7 @@ function buildEmail(
   datos: EmailData
 ): { subject: string; html: string } {
   const urlCentro = datos.centroId
-    ? `https://centrosdeacopiovenezuela.com/centro?id=${datos.centroId}`
+    ? `https://centrosdeacopiovenezuela.com/centro/${datos.centroId}`
     : "https://centrosdeacopiovenezuela.com";
 
   switch (plantilla) {

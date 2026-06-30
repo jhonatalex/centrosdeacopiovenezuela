@@ -101,7 +101,6 @@ export default function MapView({
   puntoElegido,
   className,
 }: MapViewProps) {
-  const [map, setMap] = useState<L.Map | null>(null);
   const iconElegido = useMemo(() => pin("#7c6cf0", false), []);
 
   return (
@@ -111,10 +110,8 @@ export default function MapView({
       scrollWheelZoom={false}
       className={className}
       style={{ height: "100%", width: "100%" }}
-      ref={setMap}
     >
-      {map ? (
-        <>
+      <>
           <LayersControl position="topright">
             <LayersControl.BaseLayer checked name="🗺️ Mapa Estándar">
               <TileLayer
@@ -174,7 +171,7 @@ export default function MapView({
                       </p>
                     )}
                     <Link
-                      href={`/centro?id=${c.id}`}
+                      href={`/centro/${c.id}`}
                       className="mt-2 inline-flex w-full items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
                       Ver detalle
@@ -217,8 +214,7 @@ export default function MapView({
 
           <Recenter punto={enfocar ?? miUbicacion ?? null} />
           <ClickHandler onPick={onPick} />
-        </>
-      ) : null}
+      </>
     </MapContainer>
   );
 }

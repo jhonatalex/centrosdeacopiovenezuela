@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
@@ -46,8 +45,7 @@ import {
 
 const MapView = dynamic(() => import("@/components/MapView"), { ssr: false });
 
-function Detalle() {
-  const id = useSearchParams().get("id") ?? "";
+export default function CentroClient({ id }: { id: string }) {
   const { usuario, iniciarSesion } = useAuth();
   const [centro, setCentro] = useState<Centro | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -320,7 +318,7 @@ function Detalle() {
                 </Button>
               </div>
             )}
-            
+
             {editandoSuministros ? (
               <Card className="col-span-1 sm:col-span-2 p-4">
                 <div className="flex items-center justify-between mb-4">
@@ -537,7 +535,7 @@ function Detalle() {
             <h3 className="font-display text-lg font-bold mb-2 flex items-center gap-2">
               <UserCheck className="size-5 text-primary" /> Asignar Responsabilidad
             </h3>
-            
+
             {solicitudEnviada ? (
               <div className="py-6 text-center space-y-2">
                 <p className="font-bold text-success text-base">¡Solicitud enviada correctamente!</p>
@@ -548,7 +546,7 @@ function Detalle() {
                 <p className="text-xs text-muted mb-4 leading-relaxed">
                   Si eres responsable directo o voluntario a cargo de este centro de acopio, solicita su asignación para poder actualizar el inventario y sus detalles cuando lo necesites.
                 </p>
-                
+
                 <div className="space-y-3 text-sm">
                   <Field label="Tu Nombre">
                     <Input value={usuario?.nombre} disabled className="opacity-70 bg-surface-2 cursor-not-allowed" />
@@ -580,13 +578,5 @@ function Detalle() {
         </div>
       )}
     </div>
-  );
-}
-
-export default function CentroPage() {
-  return (
-    <Suspense fallback={<Spinner />}>
-      <Detalle />
-    </Suspense>
   );
 }

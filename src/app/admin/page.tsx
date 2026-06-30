@@ -437,7 +437,7 @@ export default function AdminPage() {
                       <p className="flex items-center gap-1.5 text-muted">
                         <Building2 className="size-3.5" />
                         <span className="font-semibold">Centro solicitado:</span>{" "}
-                        <Link href={`/centro?id=${s.centroId}`} className="text-primary hover:underline font-semibold">
+                        <Link href={`/centro/${s.centroId}`} className="text-primary hover:underline font-semibold">
                           {s.centroNombre}
                         </Link>
                       </p>
@@ -558,7 +558,7 @@ export default function AdminPage() {
               <div className="flex flex-wrap gap-2 border-t border-border p-3 justify-end items-center">
                 {c.estado === "aprobado" && (
                   <Link
-                    href={`/centro?id=${c.id}`}
+                    href={`/centro/${c.id}`}
                     className="text-xs font-semibold text-primary mr-auto pl-2"
                   >
                     Ver en público →

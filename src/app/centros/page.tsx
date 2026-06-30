@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, MapPin, Star, Building2, Loader2, ArrowLeft } from "lucide-react";
 import { listarCentrosAprobados } from "@/lib/db";
 import type { Centro } from "@/lib/types";
-import { Badge } from "@/components/ui";
+import { Badge, Paginator } from "@/components/ui";
 
 export default function CentrosPage() {
   const [centros, setCentros] = useState<Centro[]>([]);
@@ -15,7 +15,7 @@ export default function CentrosPage() {
   const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
-    listarCentrosAprobados()
+    listarCentrosAprobados(500)
       .then((c) => setCentros(c))
       .finally(() => setCargando(false));
   }, []);
@@ -82,7 +82,7 @@ export default function CentrosPage() {
             {paginatedCentros.map((c) => (
               <li key={c.id}>
                 <Link
-                  href={`/centro?id=${c.id}`}
+                  href={`/centro/${c.id}`}
                   className="block rounded-[1.5rem] bg-surface p-4 clay-sm transition-transform active:scale-[0.98]"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -117,41 +117,15 @@ export default function CentrosPage() {
               </li>
             ))}
           </ul>
-          
+
           {filtrados.length > 0 && (
-            <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border/10 pt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted">Mostrar:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="rounded-lg bg-surface px-2 py-1.5 text-sm font-medium text-foreground clay-inset focus:outline-none focus:ring-2 focus:ring-primary/45"
-                >
-                  <option value={15}>15 por página</option>
-                  <option value={25}>25 por página</option>
-                  <option value={50}>50 por página</option>
-                </select>
-              </div>
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
-                >
-                  Anterior
-                </button>
-                <span className="text-sm font-medium text-muted min-w-[80px] text-center">
-                  {currentPage} / {totalPages > 0 ? totalPages : 1}
-                </span>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
-                >
-                  Siguiente
-                </button>
-              </div>
-            </div>
+            <Paginator
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           )}
         </>
       )}

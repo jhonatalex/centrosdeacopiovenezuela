@@ -23,17 +23,13 @@ import {
   CheckCircle2,
   Trash2,
 } from "lucide-react";
-import { 
-  listarCentrosAprobados, 
-  listarRescates, 
-  listarRegistrosMedicos,
-  listarApiKeys,
-  crearApiKey,
-  revocarApiKey,
-  eliminarApiKey
+import {
+  listarCentrosAprobados,
+  contarRescatesActivos,
+  contarHospitalizados,
+  listarHospitalizados,
 } from "@/lib/db";
-import { generarApiKey } from "@/lib/apiKeys";
-import type { Centro, GeoPunto, Rescate, ApiKey } from "@/lib/types";
+import type { Centro, GeoPunto, Rescate } from "@/lib/types";
 import type { HospitalMarker } from "@/components/MapView";
 import { Badge, cx } from "@/components/ui";
 import Footer from "@/components/Footer";
@@ -49,14 +45,14 @@ const MapView = dynamic(() => import("@/components/MapView"), {
 
 const acciones = [
   { href: "/registrar", label: "Registrar centro", icon: Building2, color: "var(--sec-acopio)" },
-  { href: "/rescate", label: "Pedir rescate", icon: LifeBuoy, color: "var(--sec-rescate)" },
+  { href: "/rescate", label: "Rescates y Desaparecidos", icon: LifeBuoy, color: "var(--sec-rescate)" },
   { href: "/medicos", label: "Asistencia Médica", icon: Activity, color: "var(--sec-medicos)" },
   { href: "/prevencion", label: "Prevención", icon: ShieldAlert, color: "var(--sec-prevencion)" },
 ];
 
 export default function HomePage() {
   const [centros, setCentros] = useState<Centro[]>([]);
-  const [rescates, setRescates] = useState<Rescate[]>([]);
+  const [rescatesActivos, setRescatesActivos] = useState(0);
   const [hospitales, setHospitales] = useState<HospitalMarker[]>([]);
   const [hospitalizados, setHospitalizados] = useState(0);
   const [cargando, setCargando] = useState(true);
@@ -66,15 +62,26 @@ export default function HomePage() {
   const [enfocar, setEnfocar] = useState<GeoPunto | null>(null);
   const [localizando, setLocalizando] = useState(false);
   const [modalApiKey, setModalApiKey] = useState(false);
+  const [totalDesaparecidosApi, setTotalDesaparecidosApi] = useState(0);
 
   useEffect(() => {
-    Promise.all([listarCentrosAprobados(), listarRescates(), listarRegistrosMedicos()])
-      .then(([c, r, medicos]) => {
+    Promise.all([
+      listarCentrosAprobados(300),
+      contarRescatesActivos(),
+      listarHospitalizados(300),
+      contarHospitalizados(),
+      fetch("https://venezuelareporta.org/api/v1/personas?status=buscando&limit=1").then(res => res.json()).catch(() => ({ total: 0 })),
+      fetch("https://venezuelareporta.org/api/v1/ingresos?limit=1").then(res => res.json()).catch(() => ({ total: 0 }))
+    ])
+      .then(([c, activosCount, hospMap, hospCountLocal, apiDesaparecidos, apiIngresos]) => {
         setCentros(c);
-        setRescates(r);
+        setRescatesActivos(activosCount);
+        if (apiDesaparecidos && typeof apiDesaparecidos.total === "number") {
+          setTotalDesaparecidosApi(apiDesaparecidos.total);
+        }
         // Agrupa pacientes hospitalizados (con ubicación) por hospital → marcadores.
         const map = new Map<string, HospitalMarker>();
-        for (const p of medicos) {
+        for (const p of hospMap) {
           if (!p.hospitalizado || !p.hospital || !p.ubicacion) continue;
           const key = p.hospital.trim();
           const ex = map.get(key);
@@ -82,7 +89,8 @@ export default function HomePage() {
           else map.set(key, { nombre: key, ubicacion: p.ubicacion, pacientes: 1 });
         }
         setHospitales([...map.values()].sort((a, b) => b.pacientes - a.pacientes));
-        setHospitalizados(medicos.filter((p) => p.hospitalizado).length);
+        const ingresosTotales = hospCountLocal + (apiIngresos?.total || 0);
+        setHospitalizados(ingresosTotales);
       })
       .finally(() => setCargando(false));
   }, []);
@@ -98,7 +106,7 @@ export default function HomePage() {
   }, [centros, q]);
 
   const urgentes = useMemo(() => centros.filter((c) => c.necesita.length > 0), [centros]);
-  const rescatesActivos = rescates.filter((r) => !r.resuelto).length;
+  const totalRescatesYDesaparecidos = rescatesActivos + totalDesaparecidosApi;
 
   function localizar() {
     if (!navigator.geolocation) return;
@@ -132,10 +140,10 @@ export default function HomePage() {
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-2.5">
-          <Stat valor={centros.length} label="Centros activos" color="var(--sec-acopio)" />
-          <Stat valor={hospitalizados} label="Hospitalizados" color="var(--sec-medicos)" />
-          <Stat valor={urgentes.length} label="Piden ayuda" color="var(--sec-prevencion)" />
-          <Stat valor={rescatesActivos} label="Rescates" color="var(--sec-rescate)" />
+          <Stat valor={centros.length} label="Centros activos" color="var(--sec-acopio)" cargando={cargando} />
+          <Stat valor={hospitalizados} label="Hospitalizados" color="var(--sec-medicos)" cargando={cargando} />
+          <Stat valor={urgentes.length} label="Piden ayuda" color="var(--sec-prevencion)" cargando={cargando} />
+          <Stat valor={totalRescatesYDesaparecidos} label="Rescates/Desaparecidos" color="var(--sec-rescate)" cargando={cargando} />
         </div>
       </section>
 
@@ -230,7 +238,7 @@ export default function HomePage() {
             {urgentes.slice(0, 4).map((c) => (
               <li key={c.id}>
                 <Link
-                  href={`/centro?id=${c.id}`}
+                  href={`/centro/${c.id}`}
                   className="block rounded-[1.5rem] bg-surface p-4 clay-sm transition-transform active:scale-[0.98]"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -287,7 +295,7 @@ export default function HomePage() {
         onClick={() => setModalApiKey(true)}
         className="fixed bottom-36 right-4 z-[1500] inline-flex items-center gap-2 rounded-full bg-[var(--sec-medicos)] px-4 py-3 text-sm font-bold text-white shadow-float transition-transform hover:scale-105 active:scale-95"
       >
-        <Key className="size-4" /> API Key
+        <Key className="size-4" /> API
       </button>
 
       {modalApiKey && <ModalApiKeys onClose={() => setModalApiKey(false)} />}
@@ -297,12 +305,18 @@ export default function HomePage() {
   );
 }
 
-function Stat({ valor, label, color }: { valor: number; label: string; color: string }) {
+function Stat({ valor, label, color, cargando }: { valor: number; label: string; color: string; cargando?: boolean }) {
   return (
     <div className="rounded-[1.2rem] bg-surface-2 px-2 py-3 text-center clay-inset">
-      <p className="font-display text-2xl font-bold leading-none" style={{ color }}>
-        {valor}
-      </p>
+      <div className="flex h-6 items-center justify-center">
+        {cargando ? (
+          <Loader2 className="size-5 animate-spin" style={{ color }} />
+        ) : (
+          <p className="font-display text-2xl font-bold leading-none" style={{ color }}>
+            {valor}
+          </p>
+        )}
+      </div>
       <p className="mt-1 text-[11px] font-medium leading-tight text-muted">{label}</p>
     </div>
   );
@@ -311,31 +325,10 @@ function Stat({ valor, label, color }: { valor: number; label: string; color: st
 /* ============================ Modal API Keys ============================ */
 
 function ModalApiKeys({ onClose }: { onClose: () => void }) {
-  const [keys, setKeys] = useState<ApiKey[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [nombre, setNombre] = useState("");
-  const [guardando, setGuardando] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
   const endpointUrl = typeof window !== "undefined"
     ? `${window.location.origin}/api/hospitalizados`
     : "/api/hospitalizados";
-
-  async function recargar() {
-    setCargando(true);
-    setKeys(await listarApiKeys());
-    setCargando(false);
-  }
-  useEffect(() => { recargar(); }, []);
-
-  async function crear() {
-    if (!nombre.trim()) return;
-    setGuardando(true);
-    const token = generarApiKey();
-    await crearApiKey({ id: token, nombre: nombre.trim(), creadoEn: Date.now(), creadoPor: "Acceso Público", activa: true });
-    setNombre("");
-    await recargar();
-    setGuardando(false);
-  }
 
   function copiar(texto: string) {
     navigator.clipboard.writeText(texto).then(() => {
@@ -362,7 +355,7 @@ function ModalApiKeys({ onClose }: { onClose: () => void }) {
               <Key className="size-5 text-[var(--sec-medicos)]" />
             </span>
             <div>
-              <p className="font-display font-bold">API Keys Públicas</p>
+              <p className="font-display font-bold">API</p>
               <p className="text-xs text-muted">Endpoint: <code className="rounded bg-surface-2 px-1 py-0.5 text-[11px]">/api/hospitalizados</code></p>
             </div>
           </div>
@@ -379,80 +372,10 @@ function ModalApiKeys({ onClose }: { onClose: () => void }) {
           </button>
         </div>
 
-        {/* Crear nueva key */}
-        <div className="mb-4 flex gap-2">
-          <input
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && crear()}
-            placeholder="Nombre o propósito (ej: Proyecto Censo)"
-            className="h-10 flex-1 rounded-xl border border-border bg-surface px-3 text-sm focus:border-[var(--sec-medicos)] focus:outline-none focus:ring-2 focus:ring-[var(--sec-medicos)]/30"
-          />
-          <button
-            onClick={crear}
-            disabled={guardando || !nombre.trim()}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-[var(--sec-medicos)] px-4 text-sm font-bold text-white disabled:opacity-60"
-          >
-            {guardando ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            Generar
-          </button>
-        </div>
-
-        {/* Lista de keys */}
-        {cargando ? (
-          <div className="py-8 text-center"><Loader2 className="mx-auto size-6 animate-spin text-muted" /></div>
-        ) : keys.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted">No hay API keys generadas aún.</p>
-        ) : (
-          <ul className="space-y-2">
-            {keys.map((k) => (
-              <li key={k.id} className="rounded-xl border border-border bg-surface-2/40 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      {k.activa
-                        ? <ShieldCheck className="size-3.5 shrink-0 text-success" />
-                        : <ShieldOff className="size-3.5 shrink-0 text-danger" />}
-                      <p className="truncate text-sm font-semibold">{k.nombre}</p>
-                    </div>
-                    <div className="mt-1 flex items-center gap-1">
-                      <code className="max-w-[220px] truncate rounded bg-surface px-1.5 py-0.5 text-[11px] text-muted">{k.id}</code>
-                      <button onClick={() => copiar(k.id)} className="text-muted hover:text-foreground transition-colors">
-                        {copiado === k.id ? <CheckCircle2 className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
-                      </button>
-                    </div>
-                    <p className="mt-0.5 text-[10px] text-muted-2">
-                      Creada {new Date(k.creadoEn).toLocaleDateString("es-VE")}
-                      {k.ultimoUso ? ` · Último uso: ${new Date(k.ultimoUso).toLocaleDateString("es-VE")}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    {k.activa && (
-                      <button
-                        onClick={() => { if (confirm("¿Revocar esta key? Dejará de funcionar de inmediato.")) revocarApiKey(k.id).then(recargar); }}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-warning hover:bg-warning/10"
-                      >
-                        Revocar
-                      </button>
-                    )}
-                    <button
-                      onClick={() => { if (confirm("¿Eliminar esta key permanentemente?")) eliminarApiKey(k.id).then(recargar); }}
-                      className="rounded-lg px-2 py-1 text-xs font-medium text-danger hover:bg-danger/10"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
         {/* Instrucciones de uso */}
         <div className="mt-5 rounded-xl bg-surface-2/50 p-3 text-xs text-muted space-y-1">
-          <p className="font-semibold text-foreground">Cómo consultar la API pública</p>
-          <p>Header HTTP: <code className="rounded bg-surface px-1">x-api-key: tu_key</code></p>
-          <p>O query param: <code className="rounded bg-surface px-1">?apikey=tu_key</code></p>
+          <p className="font-semibold text-foreground">Cómo consultar la API</p>
+          <p>Esta API es de acceso libre y gratuito. <strong className="text-foreground">No requiere token</strong>.</p>
           <p>Parámetros opcionales: <code className="rounded bg-surface px-1">limit=100&offset=0</code></p>
         </div>
       </div>
