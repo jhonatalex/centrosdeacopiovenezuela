@@ -32,6 +32,31 @@ export interface RespuestaVR {
   personas: PersonaVR[];
 }
 
+export interface IngresoVR {
+  id: string;
+  nombre: string;
+  cedula?: string;
+  edad?: number;
+  sexo?: string;
+  procedencia?: string;
+  ubicacion?: string;
+  fecha?: string;
+  recopilado_de?: string;
+  fuente?: string;
+  ficha_url?: string;
+  created_at?: string;
+}
+
+export interface RespuestaIngresosVR {
+  ok: boolean;
+  atribucion: string;
+  nota: string;
+  total: number;
+  limit: number;
+  offset: number;
+  personas: IngresoVR[];
+}
+
 /**
  * Obtiene una página de personas desde la API Venezuela Reporta.
  * @param offset - número de registros a saltar
@@ -42,6 +67,20 @@ export async function fetchPersonasVR(offset = 0, limit = 100): Promise<Respuest
   const res = await fetch(url, { next: { revalidate: 0 } });
   if (!res.ok) throw new Error(`Venezuela Reporta API error: ${res.status}`);
   return res.json() as Promise<RespuestaVR>;
+}
+
+/**
+ * Obtiene una página de ingresos en hospitales desde la API Venezuela Reporta.
+ */
+export async function fetchIngresosVR(q = "", offset = 0, limit = 15): Promise<RespuestaIngresosVR> {
+  const url = new URL("https://venezuelareporta.org/api/v1/ingresos");
+  url.searchParams.set("limit", limit.toString());
+  url.searchParams.set("offset", offset.toString());
+  if (q) url.searchParams.set("q", q);
+
+  const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  if (!res.ok) throw new Error(`Venezuela Reporta API error: ${res.status}`);
+  return res.json() as Promise<RespuestaIngresosVR>;
 }
 
 /**

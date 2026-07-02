@@ -115,13 +115,23 @@ export async function subirFoto(dataUrl: string, ruta: string): Promise<string> 
 
 /* =============================== CENTROS =============================== */
 
-export async function listarCentros(): Promise<Centro[]> {
-  const all = esDemo ? lsGet<Centro>("centros", centrosSeed) : await fsAll<Centro>("centros");
-  return all.sort((a, b) => b.creadoEn - a.creadoEn);
+export async function listarCentros(limitCount?: number): Promise<Centro[]> {
+  if (esDemo) {
+    const all = lsGet<Centro>("centros", centrosSeed);
+    const sorted = all.sort((a, b) => b.creadoEn - a.creadoEn);
+    return limitCount ? sorted.slice(0, limitCount) : sorted;
+  }
+  const { db } = getFirebase();
+  const { collection, query, orderBy, limit, getDocs } = await import("firebase/firestore");
+  const qArgs: any[] = [orderBy("creadoEn", "desc")];
+  if (limitCount) qArgs.push(limit(limitCount));
+  const q = query(collection(db!, "centros"), ...qArgs);
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({id: d.id, ...d.data()} as Centro));
 }
 
-export async function listarCentrosAprobados(): Promise<Centro[]> {
-  return (await listarCentros()).filter((c) => c.estado === "aprobado");
+export async function listarCentrosAprobados(limitCount?: number): Promise<Centro[]> {
+  return (await listarCentros(limitCount)).filter((c) => c.estado === "aprobado");
 }
 
 export async function obtenerCentro(id: string): Promise<Centro | null> {
@@ -212,13 +222,46 @@ async function recomputarRating(centroId: string) {
   }
 }
 
-/* =============================== MÉDICOS =============================== */
+export async function contarHospitalizados(): Promise<number> {
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    return all.filter((r) => r.hospitalizado).length;
+  }
+  const { db } = getFirebase();
+  const { collection, query, where, getCountFromServer } = await import("firebase/firestore");
+  const q = query(collection(db!, "medicos"), where("hospitalizado", "==", true));
+  const snap = await getCountFromServer(q);
+  return snap.data().count;
+}
 
-export async function listarRegistrosMedicos(): Promise<RegistroMedico[]> {
-  const all = esDemo
-    ? lsGet<RegistroMedico>("medicos", registrosMedicosSeed)
-    : await fsAll<RegistroMedico>("medicos");
-  return all.sort((a, b) => b.creadoEn - a.creadoEn);
+export async function listarHospitalizados(limitCount?: number): Promise<RegistroMedico[]> {
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    const h = all.filter((r) => r.hospitalizado).sort((a, b) => b.creadoEn - a.creadoEn);
+    return limitCount ? h.slice(0, limitCount) : h;
+  }
+  const { db } = getFirebase();
+  const { collection, query, where, limit, getDocs } = await import("firebase/firestore");
+  const qArgs: any[] = [where("hospitalizado", "==", true)];
+  if (limitCount) qArgs.push(limit(limitCount));
+  const q = query(collection(db!, "medicos"), ...qArgs);
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({id: d.id, ...d.data()} as RegistroMedico));
+}
+
+export async function listarRegistrosMedicos(limitCount?: number): Promise<RegistroMedico[]> {
+  if (esDemo) {
+    const all = lsGet<RegistroMedico>("medicos", registrosMedicosSeed);
+    const sorted = all.sort((a, b) => b.creadoEn - a.creadoEn);
+    return limitCount ? sorted.slice(0, limitCount) : sorted;
+  }
+  const { db } = getFirebase();
+  const { collection, query, orderBy, limit, getDocs } = await import("firebase/firestore");
+  const qArgs: any[] = [orderBy("creadoEn", "desc")];
+  if (limitCount) qArgs.push(limit(limitCount));
+  const q = query(collection(db!, "medicos"), ...qArgs);
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({id: d.id, ...d.data()} as RegistroMedico));
 }
 
 export async function crearRegistroMedico(r: RegistroMedico): Promise<void> {
@@ -325,9 +368,32 @@ export async function ajustarCantidadMedicamento(id: string, delta: number): Pro
 
 /* =============================== RESCATE =============================== */
 
-export async function listarRescates(): Promise<Rescate[]> {
-  const all = esDemo ? lsGet<Rescate>("rescates", rescatesSeed) : await fsAll<Rescate>("rescates");
-  return all.sort((a, b) => Number(a.resuelto) - Number(b.resuelto) || b.creadoEn - a.creadoEn);
+export async function contarRescatesActivos(): Promise<number> {
+  if (esDemo) {
+    const all = lsGet<Rescate>("rescates", rescatesSeed);
+    return all.filter((r) => !r.resuelto).length;
+  }
+  const { db } = getFirebase();
+  const { collection, query, where, getCountFromServer } = await import("firebase/firestore");
+  const q = query(collection(db!, "rescates"), where("resuelto", "==", false));
+  const snap = await getCountFromServer(q);
+  return snap.data().count;
+}
+
+export async function listarRescates(limitCount?: number): Promise<Rescate[]> {
+  if (esDemo) {
+    const all = lsGet<Rescate>("rescates", rescatesSeed);
+    const sorted = all.sort((a, b) => Number(a.resuelto) - Number(b.resuelto) || b.creadoEn - a.creadoEn);
+    return limitCount ? sorted.slice(0, limitCount) : sorted;
+  }
+  const { db } = getFirebase();
+  const { collection, query, orderBy, limit, getDocs } = await import("firebase/firestore");
+  const qArgs: any[] = [orderBy("creadoEn", "desc")];
+  if (limitCount) qArgs.push(limit(limitCount));
+  const q = query(collection(db!, "rescates"), ...qArgs);
+  const snap = await getDocs(q);
+  const results = snap.docs.map(d => ({id: d.id, ...d.data()} as Rescate));
+  return results.sort((a, b) => Number(a.resuelto) - Number(b.resuelto) || b.creadoEn - a.creadoEn);
 }
 
 export async function crearRescate(r: Rescate): Promise<void> {

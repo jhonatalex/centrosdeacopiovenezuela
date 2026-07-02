@@ -46,12 +46,14 @@ import {
   eliminarApiKey,
 } from "@/lib/db";
 import { generarApiKey } from "@/lib/apiKeys";
-import { fetchPersonasVR, filtrarNuevos, mapearPersonaVR, detectarYFusionarDuplicados } from "@/lib/venezuelaReporta";
+import { fetchPersonasVR, filtrarNuevos, mapearPersonaVR, detectarYFusionarDuplicados, fetchIngresosVR } from "@/lib/venezuelaReporta";
+import type { IngresoVR } from "@/lib/venezuelaReporta";
 import { fileADataUrl } from "@/lib/img";
 import { useAuth } from "@/lib/auth";
 import type { Medicamento, RegistroMedico, ApiKey } from "@/lib/types";
 import {
   Badge,
+  Paginator,
   Button,
   Card,
   EmptyState,
@@ -98,9 +100,7 @@ export default function MedicosPage() {
         </button>
       </div>
 
-      {tab === "banco" ? <BancoMedicamentos /> : <RegistroPersonas />}
-
-      {tab === "banco" ? <BancoMedicamentos /> : <RegistroPersonas />}
+      {tab === "banco" ? <BancoMedicamentos /> : <IngresosHospitalarios />}
     </div>
   );
 }
@@ -279,40 +279,15 @@ function BancoMedicamentos() {
           ))}
           </ul>
           
-          <div className="mt-6 flex flex-col items-center justify-between gap-3 sm:flex-row">
-            <p className="text-xs text-muted">
-              Mostrando {(pagina - 1) * limite + 1} - {Math.min(pagina * limite, filtrados.length)} de {filtrados.length} medicamentos
-            </p>
-            <div className="flex items-center gap-2">
-              <select
-                value={limite}
-                onChange={(e) => setLimite(Number(e.target.value))}
-                className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value={15}>15 por pág.</option>
-                <option value={25}>25 por pág.</option>
-                <option value={50}>50 por pág.</option>
-              </select>
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagina === 1}
-                  onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagina === totalPaginas}
-                  onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
-                >
-                  Siguiente
-                </Button>
-              </div>
-            </div>
-          </div>
+          {filtrados.length > 0 && (
+            <Paginator
+              currentPage={pagina}
+              totalPages={totalPaginas}
+              onPageChange={setPagina}
+              itemsPerPage={limite}
+              onItemsPerPageChange={setLimite}
+            />
+          )}
         </>
       )}
     </div>
@@ -453,6 +428,189 @@ function FormMedicamento({ onCreado, creadorEmail }: { onCreado: () => void; cre
 }
 
 /* ============================ Registro de personas ============================ */
+
+/* ============================ Ingresos Hospitalarios (API) ============================ */
+
+function IngresosHospitalarios() {
+  const [items, setItems] = useState<IngresoVR[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [q, setQ] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const [limite, setLimite] = useState(15);
+  const [totalItems, setTotalItems] = useState(0);
+  const [escuchando, setEscuchando] = useState(false);
+  const [soportaVoz, setSoportaVoz] = useState(true);
+  const recRef = useRef<unknown>(null);
+
+  useEffect(() => {
+    let activo = true;
+    setCargando(true);
+    fetchIngresosVR(q.trim(), (pagina - 1) * limite, limite)
+      .then((res) => {
+        if (!activo) return;
+        setItems(res.personas);
+        setTotalItems(res.total);
+      })
+      .catch((err) => {
+        console.error("Error cargando ingresos:", err);
+      })
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => { activo = false; };
+  }, [q, pagina, limite]);
+
+  useEffect(() => {
+    setPagina(1);
+  }, [q, limite]);
+
+  useEffect(() => {
+    const SR =
+      (typeof window !== "undefined" &&
+        ((window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+          (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition)) ||
+      null;
+    setSoportaVoz(Boolean(SR));
+  }, []);
+
+  function buscarPorVoz() {
+    const w = window as unknown as {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    recRef.current = rec;
+    rec.lang = "es-VE";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = () => setEscuchando(true);
+    rec.onend = () => setEscuchando(false);
+    rec.onerror = () => setEscuchando(false);
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const t = e.results[0][0].transcript;
+      setQ(t.replace(/[.?¿!¡]/g, "").trim());
+    };
+    rec.start();
+  }
+
+  const totalPaginas = Math.ceil(totalItems / limite) || 1;
+
+  return (
+    <div className="mt-5">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar por nombre, cédula u hospital…"
+            className="h-12 w-full rounded-xl border border-border bg-surface pl-9 pr-4 text-[15px] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+        </div>
+        {soportaVoz && (
+          <button
+            onClick={escuchando ? undefined : buscarPorVoz}
+            aria-label="Buscar por voz"
+            className={cx(
+              "grid size-12 shrink-0 place-items-center rounded-xl border transition-colors",
+              escuchando
+                ? "animate-pulse border-danger bg-danger text-white"
+                : "border-border bg-surface text-[var(--sec-medicos)]",
+            )}
+          >
+            {escuchando ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+          </button>
+        )}
+      </div>
+      {escuchando && <p className="mt-2 text-center text-sm text-danger">🎙️ Escuchando…</p>}
+
+      <p className="mt-4 text-sm text-muted">
+        <span className="font-semibold text-danger">Aviso:</span> Listas aportadas por la comunidad. <strong>Aparecer en un listado NO confirma que la persona esté a salvo.</strong>
+      </p>
+
+      {cargando ? (
+        <Spinner />
+      ) : items.length === 0 ? (
+        <div className="mt-4">
+          <EmptyState
+            icon={<Hospital className="size-8" />}
+            titulo="Sin resultados"
+            detalle={q ? "No se encontraron personas con esa búsqueda." : "No hay ingresos registrados."}
+          />
+        </div>
+      ) : (
+        <>
+          <ul className="mt-4 space-y-3">
+            {items.map((p) => (
+              <Card key={p.id} className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-display font-bold text-lg">{p.nombre}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted">
+                      {p.cedula && (
+                        <Badge tono="neutral">{p.cedula}</Badge>
+                      )}
+                      {(p.edad || p.sexo) && (
+                        <span className="inline-flex items-center gap-1">
+                          {p.edad && `${p.edad} años`}
+                          {p.edad && p.sexo && " · "}
+                          {p.sexo && (p.sexo.toLowerCase() === "m" || p.sexo.toLowerCase() === "masculino" ? "Masculino" : p.sexo.toLowerCase() === "f" || p.sexo.toLowerCase() === "femenino" ? "Femenino" : p.sexo)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="mt-2 flex items-center gap-1.5 text-[15px] font-medium text-foreground">
+                      <Hospital className="size-4 shrink-0 text-[var(--sec-medicos)]" />
+                      {p.ubicacion || "Ubicación desconocida"}
+                    </p>
+                    
+                    {p.procedencia && (
+                      <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
+                        <MapPin className="size-3.5 shrink-0" /> Procedencia: {p.procedencia}
+                      </p>
+                    )}
+                    
+                    {p.recopilado_de && (
+                      <p className="mt-3 text-xs text-muted border-l-2 border-border/50 pl-2">
+                        {p.recopilado_de}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {p.ficha_url && (
+                    <a
+                      href={p.ficha_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0"
+                    >
+                      <Button variant="outline" size="sm">
+                        Ver ficha <ExternalLink className="size-3.5 ml-1" />
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </ul>
+          
+          {items.length > 0 && (
+            <Paginator
+              currentPage={pagina}
+              totalPages={totalPaginas}
+              onPageChange={setPagina}
+              itemsPerPage={limite}
+              onItemsPerPageChange={setLimite}
+              options={[15, 30, 50, 100]}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 function RegistroPersonas() {
   const [items, setItems] = useState<RegistroMedico[]>([]);

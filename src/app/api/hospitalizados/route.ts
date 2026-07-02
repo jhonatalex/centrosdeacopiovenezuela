@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { validarApiKey } from "@/lib/db";
 import { getFirebase, firebaseHabilitado } from "@/lib/firebase";
 
 // Este endpoint requiere servidor (Firebase App Hosting / Cloud Run).
@@ -9,11 +8,7 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/hospitalizados
  *
- * Headers requeridos:
- *   x-api-key: <tu_api_key>
- *
- * O bien query param:
- *   ?apikey=<tu_api_key>
+ * Endpoint PÚBLICO. No requiere token.
  *
  * Query params opcionales:
  *   limit  — máximo de registros a devolver (default 100, max 500)
@@ -32,14 +27,7 @@ export const dynamic = "force-dynamic";
  * }
  */
 export async function GET(request: Request) {
-  // ── 1. Extraer token ──────────────────────────────────────────────
-  const { searchParams } = new URL(request.url);
-  const token =
-    request.headers.get("x-api-key") ??
-    searchParams.get("apikey") ??
-    "";
-
-  // ── 2. Validar key ────────────────────────────────────────────────
+  // ── 1. Comprobar Firebase ─────────────────────────────────────────
   if (!firebaseHabilitado) {
     return NextResponse.json(
       { ok: false, error: "El servidor está en modo demo. Configura Firebase para usar la API." },
@@ -47,15 +35,8 @@ export async function GET(request: Request) {
     );
   }
 
-  const key = await validarApiKey(token);
-  if (!key) {
-    return NextResponse.json(
-      { ok: false, error: "API key inválida o revocada." },
-      { status: 401 }
-    );
-  }
-
-  // ── 3. Obtener parámetros de paginación ───────────────────────────
+  // ── 2. Obtener parámetros de paginación ───────────────────────────
+  const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "100", 10), 500);
   const offset = Math.max(parseInt(searchParams.get("offset") ?? "0", 10), 0);
 

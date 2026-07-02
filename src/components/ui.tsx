@@ -340,4 +340,63 @@ export function SectionHeader({
   );
 }
 
+/* ----------------------------- Paginator ----------------------------- */
+
+export function Paginator({
+  currentPage,
+  totalPages,
+  onPageChange,
+  itemsPerPage,
+  onItemsPerPageChange,
+  options = [15, 25, 50],
+  cargando = false,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+  onItemsPerPageChange: (limit: number) => void;
+  options?: number[];
+  cargando?: boolean;
+}) {
+  return (
+    <div className="mt-6 flex flex-col items-center justify-center gap-4 border-t border-border/10 pt-4">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-muted">Mostrar:</span>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+          className="rounded-lg bg-surface px-2 py-1.5 text-sm font-medium text-foreground clay-inset focus:outline-none focus:ring-2 focus:ring-primary/45"
+        >
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt} por página
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex items-center justify-center gap-2">
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1 || cargando}
+          className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
+        >
+          Anterior
+        </button>
+        <span className="text-sm font-medium text-muted min-w-[80px] text-center">
+          {currentPage} / {totalPages > 0 ? totalPages : 1}
+        </span>
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages || totalPages === 0 || cargando}
+          className="inline-flex items-center justify-center gap-1 rounded-lg bg-surface px-3 py-1.5 text-sm font-medium disabled:opacity-50 clay-btn active:scale-95 transition-transform"
+        >
+          Siguiente
+          {cargando && <Loader2 className="size-3 animate-spin" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export { cx };
